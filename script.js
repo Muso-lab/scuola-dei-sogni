@@ -105,4 +105,39 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 700);
     });
   }
+
+  // 5. Privacy Policy Modal Handling
+  const privacyModal = document.getElementById('privacyModal');
+  const closePrivacyBtns = document.querySelectorAll('.close-privacy-btn');
+  const openPrivacyBtns = document.querySelectorAll('.open-privacy');
+
+  if (privacyModal) {
+    const openModal = (e) => {
+      if (e) e.preventDefault();
+      privacyModal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    };
+
+    const closeModal = () => {
+      privacyModal.classList.remove('active');
+      document.body.style.overflow = '';
+    };
+
+    openPrivacyBtns.forEach(btn => btn.addEventListener('click', openModal));
+    closePrivacyBtns.forEach(btn => btn.addEventListener('click', closeModal));
+
+    // Close on backdrop click
+    privacyModal.addEventListener('click', (e) => {
+      if (e.target === privacyModal) {
+        closeModal();
+      }
+    });
+
+    // Close on ESC key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && privacyModal.classList.contains('active')) {
+        closeModal();
+      }
+    });
+  }
 });

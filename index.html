@@ -801,7 +801,7 @@
               <label style="display: flex; align-items: flex-start; gap: 10px; font-size: 0.85rem; color: var(--muted); cursor: pointer;">
                 <input type="checkbox" id="privacyConsent" name="privacyConsent" required aria-required="true" style="margin-top: 3px; accent-color: var(--primary);">
                 <span>
-                  Ho preso visione dell'Informativa Privacy e acconsento al trattamento dei miei dati personali (Nome, Telefono, Email) da parte di <strong>VEMA S.R.L.S.</strong> al solo fine di ricevere risposta alla richiesta. *
+                  Ho preso visione dell'<a href="#privacyModal" class="open-privacy" style="color: var(--primary-dark); text-decoration: underline; font-weight: 700;">Informativa sulla Privacy</a> e acconsento al trattamento dei miei dati personali (Nome, Telefono, Email) da parte di <strong>VEMA S.R.L.S.</strong> al solo fine di ricevere risposta alla richiesta. *
                 </span>
               </label>
             </div>
@@ -896,11 +896,74 @@
         <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
           <span>Via della Bufalotta 850/852, 00138 Roma</span>
           <span>•</span>
-          <a href="#contatti" style="color: #B4A7C3; text-decoration: underline;">Informativa Privacy GDPR</a>
+          <a href="#privacyModal" class="open-privacy" style="color: #B4A7C3; text-decoration: underline; cursor: pointer;">Informativa Privacy GDPR</a>
         </div>
       </div>
     </div>
   </footer>
+
+  <!-- Privacy Policy Modal Dialog -->
+  <div id="privacyModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="privacyTitle">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="privacyTitle">Informativa sulla Privacy & Trattamento Dati</h3>
+        <button class="modal-close-btn close-privacy-btn" aria-label="Chiudi informativa">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.88rem; color: var(--muted); margin-bottom: 14px;">
+          <em>Ai sensi del Regolamento UE 2016/679 (GDPR) e del D.Lgs. 196/2003 s.m.i.</em>
+        </p>
+
+        <h4>1. Titolare del Trattamento</h4>
+        <p>
+          Il Titolare del trattamento dei dati è <strong>VEMA S.R.L.S.</strong>, con sede legale e operativa in <strong>Via della Bufalotta 850/852, 00138 Roma (RM)</strong>, P.IVA e Codice Fiscale <strong>16961971005</strong>, email di contatto: <a href="mailto:vemasrls1@gmail.com" style="color: var(--primary-dark); font-weight: 700;">vemasrls1@gmail.com</a>.
+        </p>
+
+        <h4>2. Tipologia di Dati Raccolti</h4>
+        <p>
+          I dati personali trattati attraverso il presente sito web includono unicamente quelli forniti volontariamente dall'utente tramite il modulo di contatto o tramite chat WhatsApp: <strong>Nome, Cognome, indirizzo Email, recapito Telefonico</strong> e le eventuali note o informazioni relative all'età del bambino inserite spontaneamente nel messaggio.
+        </p>
+
+        <h4>3. Finalità e Base Giuridica del Trattamento</h4>
+        <p>I dati forniti vengono trattati esclusivamente per le seguenti finalità:</p>
+        <ul>
+          <li>Rispondere alle richieste di informazione relative all'offerta educativa dell'Asilo Nido e della Scuola dell'Infanzia;</li>
+          <li>Fissare e gestire appuntamenti per visite guidate all'interno della villa e partecipazione agli Open Day;</li>
+          <li>Fornire assistenza informativa in merito alla documentazione per il Bonus Asilo Nido INPS e i Buoni Nido di Roma Capitale.</li>
+        </ul>
+        <p>
+          La base giuridica del trattamento è costituita dall'esecuzione di misure precontrattuali adottate su richiesta dell'interessato (art. 6, par. 1, lett. b GDPR) e dal consenso espresso tramite la spunta della presente informativa.
+        </p>
+
+        <h4>4. Modalità di Trattamento e Conservazione</h4>
+        <p>
+          Il trattamento dei dati avviene con modalità informatiche e telematiche, nel rispetto delle misure di sicurezza volte a prevenire la perdita dei dati, usi illeciti o accessi non autorizzati. I dati saranno conservati per il tempo strettamente necessario a gestire la richiesta informativa e comunque non oltre il termine dell'anno scolastico di riferimento, salvo instaurazione del rapporto contrattuale di iscrizione.
+        </p>
+
+        <h4>5. Comunicazione e Cessione dei Dati</h4>
+        <p>
+          <strong>I tuoi dati non saranno mai ceduti a terzi né diffusi a fini pubblicitari o promozionali non richiesti.</strong> I dati potranno essere conosciuti solo dal personale interno della segreteria e dalla coordinatrice didattica della Scuola dei Sogni formalmente autorizzati.
+        </p>
+
+        <h4>6. Diritti dell'Interessato</h4>
+        <p>
+          In qualità di interessato, ai sensi degli artt. 15-22 del GDPR, hai il diritto in qualunque momento di:
+        </p>
+        <ul>
+          <li>Accedere ai tuoi dati personali e richiederne copia;</li>
+          <li>Chiederne la rettifica, l'aggiornamento o la cancellazione immediata;</li>
+          <li>Revocare il consenso precedentemente accordato;</li>
+          <li>Proporre reclamo all'Autorità Garante per la Protezione dei Dati Personali (<a href="https://www.garanteprivacy.it" target="_blank" rel="noopener" style="color: var(--primary-dark); text-decoration: underline;">garanteprivacy.it</a>).</li>
+        </ul>
+        <p>
+          Per esercitare qualsiasi diritto è sufficiente inviare un'email a: <a href="mailto:vemasrls1@gmail.com" style="color: var(--primary-dark); font-weight: 700;">vemasrls1@gmail.com</a>.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary close-privacy-btn" style="padding: 10px 24px;">Ho capito / Chiudi</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Floating Call Action (Desktop/Tablet) -->
   <div class="floating-call">
