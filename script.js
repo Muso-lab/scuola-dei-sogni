@@ -1,5 +1,5 @@
 /* ========================================================
-   Scuola dei Sogni - Interactive Website Logic
+   Scuola dei Sogni - Modern & Accessible Interactive Logic
    ======================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -13,55 +13,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 2. Mobile Menu Toggle
+  // 2. Mobile Menu Toggle via CSS Class (No inline style bugs)
   const menuToggle = document.querySelector('.menu-toggle');
   const navLinks = document.querySelector('.nav-links');
+
   if (menuToggle && navLinks) {
+    menuToggle.setAttribute('aria-expanded', 'false');
+    menuToggle.setAttribute('aria-controls', 'mainNav');
+    navLinks.id = 'mainNav';
+
     menuToggle.addEventListener('click', () => {
-      const isVisible = navLinks.style.display === 'flex';
-      navLinks.style.display = isVisible ? 'none' : 'flex';
-      navLinks.style.flexDirection = 'column';
-      navLinks.style.position = 'absolute';
-      navLinks.style.top = '100%';
-      navLinks.style.left = '0';
-      navLinks.style.right = '0';
-      navLinks.style.background = '#FFFFFF';
-      navLinks.style.padding = '24px';
-      navLinks.style.boxShadow = '0 10px 30px rgba(0,0,0,0.1)';
-      navLinks.style.gap = '16px';
+      const isOpen = navLinks.classList.toggle('is-open');
+      menuToggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      menuToggle.innerHTML = isOpen ? '✕' : '☰';
+      menuToggle.setAttribute('aria-label', isOpen ? 'Chiudi menu' : 'Apri menu');
     });
-  }
 
-  // 3. Form Handling (Simulated sending & nice feedback)
-  const contactForm = document.getElementById('contactForm');
-  if (contactForm) {
-    contactForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const name = document.getElementById('name').value.trim();
-      const email = document.getElementById('email').value.trim();
-      const phone = document.getElementById('phone').value.trim();
-      const message = document.getElementById('message').value.trim();
-
-      if (!name || !email || !phone) {
-        alert('Per favore, compila tutti i campi obbligatori.');
-        return;
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!navLinks.contains(e.target) && !menuToggle.contains(e.target) && navLinks.classList.contains('is-open')) {
+        navLinks.classList.remove('is-open');
+        menuToggle.setAttribute('aria-expanded', 'false');
+        menuToggle.innerHTML = '☰';
       }
-
-      const submitBtn = contactForm.querySelector('button[type="submit"]');
-      const originalText = submitBtn.innerHTML;
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '<span>Invio in corso...</span>';
-
-      setTimeout(() => {
-        alert(`Grazie ${name}! Il tuo messaggio è stato inviato con successo. La segreteria della Scuola dei Sogni ti risponderà al più presto.`);
-        contactForm.reset();
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = originalText;
-      }, 1000);
     });
   }
 
-  // 4. Smooth Anchor Scroll with offset
+  // 3. Smooth Anchor Scroll with offset
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function(e) {
       const targetId = this.getAttribute('href');
@@ -69,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const targetElement = document.querySelector(targetId);
         if (targetElement) {
           e.preventDefault();
-          const headerOffset = 90;
+          const headerOffset = 85;
           const elementPosition = targetElement.getBoundingClientRect().top;
           const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 
@@ -79,11 +57,52 @@ document.addEventListener('DOMContentLoaded', () => {
           });
 
           // Close mobile menu if open
-          if (window.innerWidth <= 768 && navLinks) {
-            navLinks.style.display = 'none';
+          if (navLinks && navLinks.classList.contains('is-open')) {
+            navLinks.classList.remove('is-open');
+            if (menuToggle) {
+              menuToggle.setAttribute('aria-expanded', 'false');
+              menuToggle.innerHTML = '☰';
+            }
           }
         }
       }
     });
   });
+
+  // 4. Contact Form Handling (Accessible Inline Success State)
+  const contactForm = document.getElementById('contactForm');
+  const successCard = document.getElementById('formSuccessCard');
+
+  if (contactForm && successCard) {
+    contactForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const privacy = document.getElementById('privacyConsent');
+
+      if (!name || !email || !phone) {
+        return;
+      }
+
+      if (privacy && !privacy.checked) {
+        alert('È necessario acconsentire al trattamento dei dati personali per inviare la richiesta.');
+        return;
+      }
+
+      const submitBtn = contactForm.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span>Invio in corso...</span>';
+
+      setTimeout(() => {
+        contactForm.style.display = 'none';
+        successCard.style.display = 'block';
+        const successName = document.getElementById('successUserName');
+        if (successName) {
+          successName.textContent = name;
+        }
+      }, 700);
+    });
+  }
 });

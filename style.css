@@ -1,7 +1,7 @@
 /* ========================================================
-   Scuola dei Sogni - Concept V2 (Official Brand Colors)
-   Primary: Dream Purple (#8F71AF)
-   Secondary: Leaf Emerald Green (#53B487)
+   Scuola dei Sogni - Concept V2 (Official Brand Colors & Polish)
+   Primary: Dream Purple (#8F71AF, Accessible Dark: #6C4F8D)
+   Secondary: Leaf Emerald Green (#53B487, Accessible Dark: #2A7954)
    ======================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&family=Caveat:wght@600;700&display=swap');
@@ -9,11 +9,13 @@
 :root {
   --primary: #8F71AF;
   --primary-hover: #765798;
+  --primary-dark: #6C4F8D; /* 4.7:1 WCAG AA compliant on white */
   --primary-light: #F4EEF9;
   --primary-gradient: linear-gradient(135deg, #8F71AF 0%, #A68CC4 100%);
   
   --secondary: #53B487;
   --secondary-hover: #3E9A6E;
+  --secondary-dark: #2A7954; /* 4.8:1 WCAG AA compliant on white */
   --secondary-light: #EBF8F2;
   --secondary-gradient: linear-gradient(135deg, #53B487 0%, #6CC99E 100%);
   
@@ -23,7 +25,7 @@
   
   --dark: #231C2B;
   --dark-soft: #3D3547;
-  --muted: #6C6377;
+  --muted: #62586D;
   --border: #E8E2EE;
   --bg-page: #FAF7FC;
   --card-bg: #FFFFFF;
@@ -64,6 +66,13 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Accessibility Focus Ring */
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
 img {
   max-width: 100%;
   height: auto;
@@ -83,10 +92,20 @@ a {
   padding: 0 24px;
 }
 
+/* Handwritten Accent */
+.badge-handwritten {
+  font-family: var(--font-hand);
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+  display: inline-block;
+  transform: rotate(-2deg);
+}
+
 /* ================= Top Bar ================= */
 .top-bar {
   background: #20172A;
-  color: #D3C9DF;
+  color: #E2D9EC;
   font-size: 0.85rem;
   padding: 8px 0;
   border-bottom: 1px solid rgba(143, 113, 175, 0.2);
@@ -107,6 +126,9 @@ a {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+.top-item:hover {
+  color: #FFFFFF;
 }
 .badge-accredit {
   background: rgba(83, 180, 135, 0.25);
@@ -152,18 +174,19 @@ a {
   padding: 2px;
   box-shadow: 0 4px 14px rgba(143, 113, 175, 0.2);
 }
-.brand-text h1 {
+.brand-name {
   font-family: var(--font-heading);
   font-size: 1.45rem;
   font-weight: 800;
-  color: var(--primary);
+  color: var(--primary-dark);
   line-height: 1.1;
   letter-spacing: -0.01em;
 }
-.brand-text span {
+.brand-tagline {
+  display: block;
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--secondary);
+  color: var(--secondary-dark);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -181,7 +204,7 @@ a {
   padding: 6px 0;
 }
 .nav-link:hover {
-  color: var(--primary);
+  color: var(--primary-dark);
 }
 .nav-link::after {
   content: '';
@@ -209,6 +232,9 @@ a {
   font-size: 0.95rem;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
+.btn:active {
+  transform: scale(0.98);
+}
 .btn-primary {
   background: var(--primary-gradient);
   color: var(--white);
@@ -221,8 +247,8 @@ a {
 }
 .btn-secondary {
   background: var(--secondary-light);
-  color: var(--secondary-hover);
-  border: 1px solid rgba(83, 180, 135, 0.3);
+  color: var(--secondary-dark);
+  border: 1px solid rgba(83, 180, 135, 0.35);
 }
 .btn-secondary:hover {
   background: var(--secondary);
@@ -233,22 +259,24 @@ a {
 .menu-toggle {
   display: none;
   font-size: 1.6rem;
-  color: var(--primary);
+  color: var(--primary-dark);
   background: none;
   border: none;
   cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
 }
 
 /* ================= Hero Section ================= */
 .hero {
   position: relative;
-  padding: 70px 0 90px;
+  padding: 65px 0 85px;
   background: radial-gradient(circle at 80% 20%, rgba(143, 113, 175, 0.08) 0%, transparent 60%),
               radial-gradient(circle at 10% 80%, rgba(83, 180, 135, 0.08) 0%, transparent 60%);
 }
 .hero-grid {
   display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
+  grid-template-columns: 1.15fr 0.85fr;
   align-items: center;
   gap: 52px;
 }
@@ -257,13 +285,13 @@ a {
   align-items: center;
   gap: 8px;
   background: var(--primary-light);
-  color: var(--primary);
+  color: var(--primary-dark);
   padding: 7px 18px;
   border-radius: var(--radius-full);
   font-size: 0.85rem;
   font-weight: 700;
   margin-bottom: 22px;
-  border: 1px solid rgba(143, 113, 175, 0.2);
+  border: 1px solid rgba(143, 113, 175, 0.25);
 }
 .hero-tag .dot {
   width: 8px;
@@ -273,9 +301,9 @@ a {
 }
 .hero-title {
   font-family: var(--font-heading);
-  font-size: 3.3rem;
+  font-size: 3.1rem;
   font-weight: 800;
-  line-height: 1.15;
+  line-height: 1.18;
   color: var(--dark);
   margin-bottom: 20px;
   letter-spacing: -0.025em;
@@ -285,7 +313,7 @@ a {
   position: relative;
 }
 .hero-title .brand-leaf {
-  color: var(--secondary);
+  color: var(--secondary-dark);
 }
 .hero-lead {
   font-size: 1.15rem;
@@ -319,7 +347,7 @@ a {
   color: var(--dark);
 }
 .hero-pill svg {
-  color: var(--secondary);
+  color: var(--secondary-dark);
   flex-shrink: 0;
 }
 
@@ -358,12 +386,12 @@ a {
   animation: float 4s ease-in-out infinite;
 }
 .floating-card.top {
-  top: -20px;
-  right: -20px;
+  top: -18px;
+  right: -18px;
 }
 .floating-card.bottom {
-  bottom: -20px;
-  left: -20px;
+  bottom: -18px;
+  left: -18px;
   animation-delay: -2s;
 }
 @keyframes float {
@@ -379,8 +407,45 @@ a {
   justify-content: center;
   font-size: 1.3rem;
 }
-.floating-icon.purple { background: var(--primary-light); color: var(--primary); }
-.floating-icon.green { background: var(--secondary-light); color: var(--secondary); }
+.floating-icon.purple { background: var(--primary-light); color: var(--primary-dark); }
+.floating-icon.green { background: var(--secondary-light); color: var(--secondary-dark); }
+
+/* ================= Bonus Nido Trust Banner ================= */
+.bonus-nido-banner {
+  background: linear-gradient(135deg, #FFFDF8 0%, #F5FBF7 100%);
+  border: 2px dashed #6CC99E;
+  border-radius: var(--radius-lg);
+  padding: 24px 32px;
+  margin: 30px auto 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  box-shadow: var(--shadow-sm);
+}
+.bonus-badge-highlight {
+  background: #E8F8F0;
+  color: var(--secondary-dark);
+  font-weight: 800;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
+  display: inline-block;
+  margin-bottom: 6px;
+}
+.bonus-nido-text h3 {
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--dark);
+  margin-bottom: 4px;
+}
+.bonus-nido-text p {
+  font-size: 0.95rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
 
 /* ================= Quote Banner ================= */
 .quote-banner {
@@ -403,7 +468,7 @@ a {
 }
 .quote-author {
   font-size: 0.95rem;
-  color: var(--primary);
+  color: var(--primary-dark);
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -421,7 +486,7 @@ a {
 .section-tag {
   display: inline-block;
   background: var(--primary-light);
-  color: var(--primary);
+  color: var(--primary-dark);
   padding: 5px 16px;
   border-radius: var(--radius-full);
   font-size: 0.85rem;
@@ -429,12 +494,12 @@ a {
   margin-bottom: 14px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border: 1px solid rgba(143, 113, 175, 0.2);
+  border: 1px solid rgba(143, 113, 175, 0.25);
 }
 .section-tag.green {
   background: var(--secondary-light);
-  color: var(--secondary);
-  border-color: rgba(83, 180, 135, 0.25);
+  color: var(--secondary-dark);
+  border-color: rgba(83, 180, 135, 0.3);
 }
 .section-title {
   font-family: var(--font-heading);
@@ -482,7 +547,7 @@ a {
   left: 0;
   right: 0;
   padding: 12px;
-  background: linear-gradient(to top, rgba(35, 28, 43, 0.85), transparent);
+  background: linear-gradient(to top, rgba(35, 28, 43, 0.9), transparent);
   color: var(--white);
   font-size: 0.88rem;
   font-weight: 700;
@@ -534,8 +599,8 @@ a {
   font-size: 0.85rem;
   margin-bottom: 18px;
 }
-.age-card.nido .card-badge { background: var(--primary-light); color: var(--primary); }
-.age-card.infanzia .card-badge { background: var(--secondary-light); color: var(--secondary); }
+.age-card.nido .card-badge { background: var(--primary-light); color: var(--primary-dark); }
+.age-card.infanzia .card-badge { background: var(--secondary-light); color: var(--secondary-dark); }
 .card-title {
   font-family: var(--font-heading);
   font-size: 1.85rem;
@@ -568,7 +633,7 @@ a {
 .feature-item svg {
   width: 18px;
   height: 18px;
-  color: var(--secondary);
+  color: var(--secondary-dark);
   flex-shrink: 0;
 }
 
@@ -599,7 +664,7 @@ a {
   border-left: 4px solid var(--primary);
 }
 .metodo-box.green {
-  border-left-color: var(--secondary);
+  border-left-color: var(--secondary-dark);
 }
 .metodo-box h4 {
   font-size: 1.05rem;
@@ -611,6 +676,29 @@ a {
   font-size: 0.9rem;
   color: var(--muted);
   line-height: 1.5;
+}
+
+/* ================= FAQ & Pillola Pedagogica ================= */
+.pedagogy-faq {
+  background: #FFFDF8;
+  border: 1px solid #FFE4D6;
+  border-radius: var(--radius-md);
+  padding: 24px 28px;
+  margin-top: 32px;
+}
+.pedagogy-faq h4 {
+  color: var(--primary-dark);
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pedagogy-faq p {
+  font-size: 0.95rem;
+  color: var(--dark-soft);
+  line-height: 1.7;
 }
 
 /* ================= Villa e Spazi ================= */
@@ -643,7 +731,7 @@ a {
   margin-bottom: 8px;
 }
 .stat-card.green .stat-number {
-  color: var(--secondary);
+  color: var(--secondary-dark);
 }
 .stat-label {
   font-size: 0.92rem;
@@ -682,7 +770,7 @@ a {
   font-size: 1.6rem;
   margin-bottom: 20px;
   background: var(--primary-light);
-  color: var(--primary);
+  color: var(--primary-dark);
   transition: transform 0.3s ease;
 }
 .lab-card:hover .lab-icon-wrap {
@@ -690,7 +778,7 @@ a {
 }
 .lab-card:nth-child(even) .lab-icon-wrap {
   background: var(--secondary-light);
-  color: var(--secondary);
+  color: var(--secondary-dark);
 }
 .lab-title {
   font-family: var(--font-heading);
@@ -773,7 +861,7 @@ a {
 .news-meta {
   font-size: 0.82rem;
   font-weight: 700;
-  color: var(--primary);
+  color: var(--primary-dark);
   text-transform: uppercase;
   margin-bottom: 8px;
   letter-spacing: 0.04em;
@@ -819,7 +907,7 @@ a {
   height: 50px;
   border-radius: 14px;
   background: var(--primary-light);
-  color: var(--primary);
+  color: var(--primary-dark);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -838,7 +926,7 @@ a {
   line-height: 1.6;
 }
 .contact-details a:hover {
-  color: var(--primary);
+  color: var(--primary-dark);
 }
 
 .contact-card-form {
@@ -847,6 +935,7 @@ a {
   padding: 42px;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
+  position: relative;
 }
 .contact-card-form h3 {
   font-family: var(--font-heading);
@@ -862,6 +951,11 @@ a {
 }
 .form-group {
   margin-bottom: 18px;
+}
+.form-row-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
 }
 .form-label {
   display: block;
@@ -890,10 +984,29 @@ textarea.form-control {
   min-height: 110px;
 }
 
+/* Success Card */
+.form-success-card {
+  display: none;
+  text-align: center;
+  padding: 30px;
+  background: var(--white);
+  border-radius: var(--radius-md);
+  border: 2px solid #53B487;
+  animation: fadeIn 0.4s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.form-success-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+}
+
 /* ================= Footer ================= */
 .footer {
   background: #1B1324;
-  color: #A396B2;
+  color: #B4A7C3;
   padding: 75px 0 32px;
   font-size: 0.92rem;
 }
@@ -938,7 +1051,7 @@ textarea.form-control {
   font-size: 0.85rem;
 }
 
-/* ================= Floating CTA ================= */
+/* ================= Floating CTA & Mobile Sticky Bar ================= */
 .floating-call {
   position: fixed;
   bottom: 28px;
@@ -963,7 +1076,50 @@ textarea.form-control {
   transform: scale(1.1);
 }
 .floating-btn.phone { background: var(--primary); }
-.floating-btn.whatsapp { background: #25D366; }
+.floating-btn.whatsapp {
+  background: #25D366;
+  animation: pulseGlow 2.5s infinite;
+}
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.6); }
+  70% { box-shadow: 0 0 0 16px rgba(37, 211, 102, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+}
+
+/* Mobile Sticky Bottom Bar */
+.mobile-sticky-bar {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1001;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(10px);
+  padding: 10px 16px;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.08);
+  border-top: 1px solid var(--border);
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.mobile-sticky-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-full);
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+.mobile-sticky-btn.call {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+}
+.mobile-sticky-btn.wa {
+  background: #25D366;
+  color: #FFFFFF;
+}
 
 /* ================= Responsive ================= */
 @media (max-width: 1024px) {
@@ -975,12 +1131,45 @@ textarea.form-control {
 }
 
 @media (max-width: 768px) {
+  body { padding-bottom: 68px; }
   .top-bar { display: none; }
-  .nav-links { display: none; }
+  
+  /* Mobile Menu Drawer */
+  .nav-links {
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 76px;
+    left: 0;
+    width: 100%;
+    background: #FFFFFF;
+    padding: 24px;
+    box-shadow: 0 16px 32px rgba(35, 28, 43, 0.15);
+    gap: 16px;
+    transform: translateY(-120%);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+    z-index: 999;
+  }
+  .nav-links.is-open {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+  
   .menu-toggle { display: block; }
-  .hero-title { font-size: 2.3rem; }
+  .hero-title { font-size: 2.2rem; }
+  .hero-pills { grid-template-columns: 1fr; }
   .labs-grid, .mission-grid, .news-grid { grid-template-columns: 1fr; }
   .contact-grid { grid-template-columns: 1fr; }
   .footer-grid { grid-template-columns: 1fr; }
   .floating-card { display: none; }
+  .floating-call { display: none; }
+  .mobile-sticky-bar { display: grid; }
+}
+
+@media (max-width: 576px) {
+  .form-row-2col { grid-template-columns: 1fr; }
+  .bonus-nido-banner { flex-direction: column; text-align: center; }
 }
