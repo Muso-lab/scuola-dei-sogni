@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const newsContainer = document.querySelector('.news-grid');
   if (newsContainer) {
     const isEnglish = document.documentElement.lang === 'en';
-    fetch('data/news.json')
+    fetch(`data/news.json?v=${Date.now()}`)
       .then(res => {
         if (!res.ok) throw new Error('Network error');
         return res.json();

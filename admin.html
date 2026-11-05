@@ -872,7 +872,6 @@
     const publishToGitHub = async (jsonData) => {
       const token = getStoredToken();
       if (!token) {
-        // Fallback: save to localStorage & offer download
         localStorage.setItem('scuola_sogni_news_draft', JSON.stringify(jsonData, null, 2));
         showToast("Salvato localmente. Configura il token GitHub per pubblicare online in automatico.", "info", "💾");
         return false;
@@ -883,21 +882,22 @@
 
       try {
         const jsonString = JSON.stringify(jsonData, null, 2);
-        const encodedContent = btoa(unescape(encodeURIComponent(jsonString)));
+        // UTF-8 to Base64 standard safe encoder
+        const utf8Bytes = new TextEncoder().encode(jsonString);
+        let binaryStr = '';
+        utf8Bytes.forEach(b => binaryStr += String.fromCharCode(b));
+        const encodedContent = btoa(binaryStr);
 
-        // Funzione helper per ottenere sempre l'ultimo SHA fresco senza cache del browser
+        // Helper per ottenere SHA aggiornato da GitHub
         const fetchLatestSha = async () => {
-          const cacheBuster = Date.now();
-          const getRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}?ref=${GITHUB_BRANCH}&t=${cacheBuster}`, {
+          const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}?ref=${GITHUB_BRANCH}&_=${Date.now()}`, {
             headers: {
               'Authorization': `Bearer ${token}`,
-              'Accept': 'application/vnd.github.v3+json',
-              'Cache-Control': 'no-cache, no-store, must-revalidate',
-              'Pragma': 'no-cache'
+              'Accept': 'application/vnd.github.v3+json'
             }
           });
-          if (getRes.ok) {
-            const data = await getRes.json();
+          if (res.ok) {
+            const data = await res.json();
             return data.sha;
           }
           return null;
@@ -905,15 +905,14 @@
 
         let sha = await fetchLatestSha();
 
-        // Tentativo di commit con retry automatico in caso di conflitto SHA
-        const attemptCommit = async (currentSha) => {
-          const payload = {
-            message: `Aggiorna news dal pannello admin [${new Date().toLocaleDateString('it-IT')} ${new Date().toLocaleTimeString('it-IT')}]`,
+        const doCommit = async (currentSha) => {
+          const bodyData = {
+            message: `Aggiorna news dal pannello admin [${new Date().toLocaleString('it-IT')}]`,
             content: encodedContent,
             branch: GITHUB_BRANCH
           };
           if (currentSha) {
-            payload.sha = currentSha;
+            bodyData.sha = currentSha;
           }
 
           return await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`, {
@@ -923,35 +922,34 @@
               'Accept': 'application/vnd.github.v3+json',
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify(payload)
+            body: JSON.stringify(bodyData)
           });
         };
 
-        let putRes = await attemptCommit(sha);
+        let putRes = await doCommit(sha);
 
-        // Se GitHub risponde 409 Conflict (SHA non coincidente), rifacciamo il fetch dello SHA fresco e riproviamo subito!
+        // Se riceve 409 Conflict, recupera subito l'ultimo SHA e ritenta una seconda volta
         if (putRes.status === 409) {
-          console.warn("Rilevato conflitto SHA GitHub, aggiorno SHA e riprovo...");
+          console.warn("Rilevato disallineamento SHA, recupero nuovo SHA e ritento...");
           sha = await fetchLatestSha();
-          putRes = await attemptCommit(sha);
+          putRes = await doCommit(sha);
         }
 
         if (putRes.ok) {
           updateStatusUI('online', 'Pubblicato online con successo!');
           showToast("Pubblicato online! GitHub Pages aggiorna il sito in 30 secondi.", "success", "🚀");
-          // Aggiorna anche la cache locale
           localStorage.setItem('scuola_sogni_news_draft', jsonString);
           return true;
         } else {
-          const errData = await putRes.json();
+          const errData = await putRes.json().catch(() => ({}));
           updateStatusUI('warning', 'Errore pubblicazione GitHub');
-          alert(`Errore GitHub: ${errData.message || 'Impossibile salvare il file.'}`);
+          alert(`Errore GitHub (${putRes.status}): ${errData.message || 'Controlla i permessi del tuo token.'}`);
           return false;
         }
       } catch (err) {
-        console.error(err);
+        console.error("Dettaglio errore pubblicazione:", err);
         updateStatusUI('warning', 'Errore di connessione GitHub');
-        alert("Errore durante la pubblicazione su GitHub. Verifica la connessione.");
+        alert("Errore durante la pubblicazione su GitHub (" + (err.message || err) + "). Verifica la connessione o il token.");
         return false;
       }
     };
