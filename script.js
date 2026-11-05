@@ -140,4 +140,46 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+
+  // 6. Dynamic News Loader (Loads from data/news.json with language detection)
+  const newsContainer = document.querySelector('.news-grid');
+  if (newsContainer) {
+    const isEnglish = document.documentElement.lang === 'en';
+    fetch('data/news.json')
+      .then(res => {
+        if (!res.ok) throw new Error('Network error');
+        return res.json();
+      })
+      .then(newsItems => {
+        if (!Array.isArray(newsItems) || newsItems.length === 0) return;
+        
+        let html = '';
+        newsItems.forEach(item => {
+          const category = isEnglish ? (item.category_en || item.category_it) : (item.category_it || item.category_en);
+          const title = isEnglish ? (item.title_en || item.title_it) : (item.title_it || item.title_en);
+          const excerpt = isEnglish ? (item.excerpt_en || item.excerpt_it) : (item.excerpt_it || item.excerpt_en);
+          const img = item.image || 'assets/images/parco-giochi-ulivo.png';
+          const link = item.instagram_url ? `<a href="${item.instagram_url}" target="_blank" rel="noopener" class="news-ig-badge" title="Instagram Post">📸 Instagram</a>` : '';
+
+          html += `
+            <article class="news-card" data-id="${item.id || ''}">
+              <div class="news-thumb">
+                <img src="${img}" alt="${title}" loading="lazy">
+                ${link}
+              </div>
+              <div class="news-body">
+                <div class="news-meta">${category}</div>
+                <h3 class="news-title">${title}</h3>
+                <p class="news-excerpt">${excerpt}</p>
+              </div>
+            </article>
+          `;
+        });
+        newsContainer.innerHTML = html;
+      })
+      .catch(err => {
+        console.log('Using static fallback news');
+      });
+  }
+
 });

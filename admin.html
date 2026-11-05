@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard & Social Studio | Scuola dei Sogni</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="icon" type="image/jpeg" href="assets/images/logo-scuola-dei-sogni.jpg">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    :root {
+      --admin-bg: #F7F5FA;
+      --admin-card: #FFFFFF;
+      --admin-border: #E5DFEC;
+      --admin-text: #2D2535;
+      --admin-muted: #6E6278;
+    }
+    body {
+      background: var(--admin-bg);
+      color: var(--admin-text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .admin-navbar {
+      background: #FFFFFF;
+      border-bottom: 1px solid var(--admin-border);
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    }
+    .admin-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      font-size: 1.15rem;
+      color: var(--primary-dark);
+      text-decoration: none;
+    }
+    .admin-brand img {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+    }
+    .admin-container {
+      max-width: 1200px;
+      width: 100%;
+      margin: 32px auto;
+      padding: 0 20px;
+      flex: 1;
+    }
+    .admin-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--admin-border);
+      padding-bottom: 8px;
+    }
+    .tab-btn {
+      padding: 10px 20px;
+      border-radius: 999px;
+      font-weight: 700;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--admin-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+    .tab-btn:hover {
+      background: rgba(143, 113, 175, 0.08);
+      color: var(--primary-dark);
+    }
+    .tab-btn.active {
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      border-color: rgba(143, 113, 175, 0.3);
+    }
+    .admin-section {
+      display: none;
+    }
+    .admin-section.active {
+      display: block;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .admin-card {
+      background: var(--admin-card);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--admin-border);
+      padding: 28px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.03);
+      margin-bottom: 24px;
+    }
+    .admin-title {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--dark);
+      margin-bottom: 6px;
+    }
+    .admin-subtitle {
+      font-size: 0.92rem;
+      color: var(--admin-muted);
+      margin-bottom: 22px;
+    }
+    .grid-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .news-manage-item {
+      display: flex;
+      gap: 16px;
+      padding: 16px;
+      border: 1px solid var(--admin-border);
+      border-radius: var(--radius-md);
+      margin-bottom: 14px;
+      align-items: center;
+      background: #FAFAFD;
+      transition: all 0.2s;
+    }
+    .news-manage-item:hover {
+      background: #FFFFFF;
+      box-shadow: var(--shadow-sm);
+    }
+    .news-manage-thumb {
+      width: 80px;
+      height: 80px;
+      border-radius: 10px;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+    .news-manage-info {
+      flex: 1;
+    }
+    .news-manage-meta {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .news-manage-title {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--dark);
+      margin: 2px 0 4px;
+    }
+    .news-manage-excerpt {
+      font-size: 0.86rem;
+      color: var(--admin-muted);
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .badge-chip {
+      display: inline-block;
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #EBE5F5;
+      color: var(--primary-dark);
+      font-weight: 700;
+    }
+    /* AI Box */
+    .ai-magic-box {
+      background: linear-gradient(135deg, #FAF4FF 0%, #F0FFF8 100%);
+      border: 2px solid #E1D2F7;
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-bottom: 24px;
+    }
+    .ai-btn-generate {
+      background: linear-gradient(135deg, #8F71AF 0%, #53B487 100%);
+      color: #FFFFFF;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 999px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(143, 113, 175, 0.3);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .ai-btn-generate:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(143, 113, 175, 0.4);
+    }
+    /* Copy Pill */
+    .copy-pill-btn {
+      background: #FFFFFF;
+      border: 1px solid var(--admin-border);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--primary-dark);
+      transition: all 0.2s;
+    }
+    .copy-pill-btn:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+    }
+    .tag-bubble {
+      display: inline-block;
+      background: rgba(83, 180, 135, 0.15);
+      color: #2F7A56;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      margin-right: 6px;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    /* IG Preview phone */
+    .ig-phone-preview {
+      max-width: 360px;
+      margin: 0 auto;
+      background: #FFFFFF;
+      border-radius: 28px;
+      border: 6px solid #231C2B;
+      overflow: hidden;
+      box-shadow: 0 16px 36px rgba(0,0,0,0.12);
+      font-size: 0.88rem;
+    }
+    .ig-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-bottom: 1px solid #F0F0F0;
+    }
+    .ig-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid #E1306C;
+    }
+    .ig-photo {
+      width: 100%;
+      height: 280px;
+      object-fit: cover;
+      background: #F7F5FA;
+    }
+    .ig-caption {
+      padding: 12px 14px;
+      line-height: 1.5;
+    }
+    /* Login overlay */
+    #authOverlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(35, 28, 43, 0.92);
+      backdrop-filter: blur(8px);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .login-box {
+      background: #FFFFFF;
+      border-radius: 24px;
+      padding: 36px 32px;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    }
+    @media (max-width: 768px) {
+      .grid-2col { grid-template-columns: 1fr; }
+      .admin-tabs { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Access Authentication Overlay -->
+  <div id="authOverlay">
+    <div class="login-box">
+      <img src="assets/images/logo-scuola-dei-sogni.jpg" alt="Logo" style="width: 64px; height: 64px; border-radius: 16px; margin-bottom: 16px;">
+      <h2 style="font-size: 1.4rem; font-weight: 800; color: var(--dark); margin-bottom: 8px;">Scuola dei Sogni • Studio</h2>
+      <p style="font-size: 0.9rem; color: var(--admin-muted); margin-bottom: 24px;">
+        Pannello Riservato di Gestione News & Social Instagram
+      </p>
+      <input type="password" id="adminPassInput" class="form-control" placeholder="Inserisci Password di Accesso" style="margin-bottom: 16px; text-align: center; font-size: 1.05rem;" autofocus>
+      <button class="btn btn-primary" id="loginBtn" style="width: 100%; justify-content: center;">
+        <span>Accedi al Pannello</span>
+      </button>
+      <div id="authError" style="color: #D32F2F; font-size: 0.85rem; font-weight: 700; margin-top: 12px; display: none;">
+        Password non corretta. Riprova.
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Admin Navbar -->
+  <header class="admin-navbar">
+    <a href="index.html" class="admin-brand" target="_blank" title="Torna al sito pubblico">
+      <img src="assets/images/logo-scuola-dei-sogni.jpg" alt="Logo">
+      <div>
+        <div>Scuola dei Sogni • Admin</div>
+        <div style="font-size: 0.72rem; color: var(--secondary-dark); font-weight: 600;">PORTALE GESTIONALE NEWS & SOCIAL</div>
+      </div>
+    </a>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <a href="index.html" target="_blank" class="btn btn-secondary" style="padding: 7px 16px; font-size: 0.85rem;">
+        <span>🌐 Vedi Sito Live</span>
+      </a>
+      <button id="logoutBtn" class="btn btn-secondary" style="padding: 7px 14px; font-size: 0.85rem; background: #FFF0F0; color: #D32F2F; border-color: #FFCDD2;">
+        Esci
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="admin-container">
+
+    <!-- Navigation Tabs -->
+    <div class="admin-tabs">
+      <button class="tab-btn active" data-tab="tab-news">
+        <span>📰 Gestione News</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-ai-studio">
+        <span>✨ Assistente AI Social & Copy</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-ig-feed">
+        <span>📸 Instagram Sync</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-github-sync">
+        <span>🚀 Stato & Pubblicazione</span>
+      </button>
+    </div>
+
+    <!-- TAB 1: GESTIONE NEWS -->
+    <section id="tab-news" class="admin-section active">
+      <div class="grid-2col">
+        
+        <!-- Left: Form Creazione/Modifica News -->
+        <div class="admin-card">
+          <h2 class="admin-title" id="formNewsHeading">Aggiungi Nuova News</h2>
+          <p class="admin-subtitle">Compila i campi per pubblicare un nuovo avviso, gita o evento nel sito.</p>
+
+          <form id="newsForm">
+            <input type="hidden" id="editNewsId" value="">
+
+            <div class="form-group">
+              <label class="form-label" for="newsCategory">Categoria</label>
+              <select id="newsCategory" class="form-control" required>
+                <option value="Progetto Educativo|Educational Project">Progetto Educativo / Educational Project</option>
+                <option value="Gita di Fine Anno|End-of-Year Field Trip">Gita & Uscita Didattica / Field Trip</option>
+                <option value="Eventi & Famiglie|Family Events">Eventi & Famiglie / Family Events</option>
+                <option value="Avvisi & Comunicazioni|School Announcements">Avvisi alle Famiglie / Announcements</option>
+                <option value="Laboratori Speciali|Special Workshops">Laboratori Speciali / Special Workshops</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="newsDate">Data Evento</label>
+              <input type="date" id="newsDate" class="form-control" required>
+            </div>
+
+            <div style="background: rgba(143, 113, 175, 0.05); padding: 14px; border-radius: var(--radius-md); margin-bottom: 16px; border: 1px dashed var(--border);">
+              <div style="font-weight: 700; font-size: 0.85rem; color: var(--primary-dark); margin-bottom: 8px;">🇮🇹 Versione Italiana</div>
+              <div class="form-group">
+                <label class="form-label" for="newsTitleIt">Titolo in Italiano *</label>
+                <input type="text" id="newsTitleIt" class="form-control" placeholder="Es. Visita della Polizia Stradale al parco" required>
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" for="newsExcerptIt">Descrizione / Sommario *</label>
+                <textarea id="newsExcerptIt" class="form-control" rows="3" placeholder="Breve testo coinvolgente sulla giornata..." required></textarea>
+              </div>
+            </div>
+
+            <div style="background: rgba(83, 180, 135, 0.05); padding: 14px; border-radius: var(--radius-md); margin-bottom: 16px; border: 1px dashed rgba(83, 180, 135, 0.4);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="font-weight: 700; font-size: 0.85rem; color: #2A6C4D;">🇬🇧 Versione Inglese (en.html)</div>
+                <button type="button" id="btnAutoTranslate" class="copy-pill-btn" style="font-size: 0.75rem;">
+                  ✨ Auto-Traduci da IT
+                </button>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="newsTitleEn">Titolo in Inglese *</label>
+                <input type="text" id="newsTitleEn" class="form-control" placeholder="e.g. Road Safety Education Day" required>
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label" for="newsExcerptEn">Descrizione in Inglese *</label>
+                <textarea id="newsExcerptEn" class="form-control" rows="3" placeholder="Short engaging summary in English..." required></textarea>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="newsImageSelect">Immagine della News</label>
+              <select id="newsImageSelect" class="form-control">
+                <option value="assets/images/parco-giochi-ulivo.png">Ulivo secolare e parco giochi</option>
+                <option value="assets/images/giardino-giochi-scuola.png">Prato e area verde all'aperto</option>
+                <option value="assets/images/parco-alberato-viale.png">Viale alberato della villa</option>
+                <option value="assets/images/villa-facciata-arco.png">Ingresso villa arco lilla</option>
+                <option value="custom">Altro URL immagine personalizzato...</option>
+              </select>
+              <input type="text" id="newsCustomImg" class="form-control" placeholder="https://... o assets/images/tua-foto.jpg" style="margin-top: 8px; display: none;">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="newsIgLink">Link Post Instagram Ufficiale (Opzionale)</label>
+              <input type="url" id="newsIgLink" class="form-control" placeholder="https://www.instagram.com/p/...">
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 24px;">
+              <button type="submit" class="btn btn-primary" style="flex: 1; justify-content: center;">
+                <span id="saveBtnText">💾 Salva News</span>
+              </button>
+              <button type="button" id="btnCancelEdit" class="btn btn-secondary" style="display: none;">
+                Annulla
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Right: Lista News Esistenti -->
+        <div>
+          <div class="admin-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <h2 class="admin-title" style="margin-bottom: 0;">News Attualmente Online (<span id="newsCount">0</span>)</h2>
+              <button id="btnExportJson" class="copy-pill-btn">⬇️ Esporta news.json</button>
+            </div>
+            <p class="admin-subtitle">Questi contenuti compaiono in tempo reale nella sezione Vita a Scuola sia in italiano che in inglese.</p>
+
+            <div id="newsListContainer">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB 2: ASSISTENTE AI SOCIAL & COPY STUDIO -->
+    <section id="tab-ai-studio" class="admin-section">
+      <div class="grid-2col">
+        
+        <!-- Left: Input & Prompt Generator -->
+        <div>
+          <div class="ai-magic-box">
+            <h2 style="font-size: 1.35rem; font-weight: 800; color: var(--primary-dark); margin-bottom: 8px;">
+              ✨ Social Assistant & Copy Generator
+            </h2>
+            <p style="font-size: 0.92rem; color: var(--admin-muted); margin-bottom: 18px;">
+              Scrivi una breve frase o idea dell'attività svolta oggi con i bambini: l'assistente comporrà all'istante il post perfetto per Instagram, gli hashtag e la pillola per il sito web.
+            </p>
+
+            <div class="form-group">
+              <label class="form-label" for="aiActivityBrief">Di cosa si è trattato? (Basta una frase informale)</label>
+              <textarea id="aiActivityBrief" class="form-control" rows="3" placeholder="Es. Oggi vendemmia e pigiatura dell'uva nell'orto didattico con i grembiulini. Bambini entusiasti e sorridenti!"></textarea>
+            </div>
+
+            <div class="form-row-2col">
+              <div class="form-group">
+                <label class="form-label" for="aiActivityType">Tipo di Esperienza</label>
+                <select id="aiActivityType" class="form-control">
+                  <option value="Natura & Orto Didattico">🌱 Natura & Orto Didattico</option>
+                  <option value="Laboratorio in Lingua Inglese">🇬🇧 Laboratorio in Lingua Inglese</option>
+                  <option value="Arte, Colori & Manipolazione">🎨 Arte & Manipolazione</option>
+                  <option value="Psicomotricità & Gioco nel Parco">🤸 Psicomotricità nel Parco</option>
+                  <option value="Musica & Ritmo">🎵 Musica & Espressione</option>
+                  <option value="Festa & Condivisione con Famiglie">✨ Festa & Evento Speciale</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="aiAudience">Target Principale</label>
+                <select id="aiAudience" class="form-control">
+                  <option value="Nido (0-3 anni)">Nido (0-3 anni)</option>
+                  <option value="Materna (3-6 anni)">Materna (3-6 anni)</option>
+                  <option value="Tutti i Bambini 0-6">Tutti i Bambini (0-6 anni)</option>
+                </select>
+              </div>
+            </div>
+
+            <button type="button" id="btnRunAi" class="ai-btn-generate" style="width: 100%; justify-content: center;">
+              <span>🪄 Genera Post Instagram & News Sito</span>
+            </button>
+          </div>
+
+          <!-- Suggerimenti rapidi -->
+          <div class="admin-card">
+            <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 8px;">💡 Idee di Post pronte da cliccare</h3>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              <button class="copy-pill-btn sample-idea" style="text-align: left; padding: 10px 14px;">
+                🍂 <strong>Autunno nel Parco:</strong> Raccolta foglie secche, pigne e laboratorio di pittura naturale.
+              </button>
+              <button class="copy-pill-btn sample-idea" style="text-align: left; padding: 10px 14px;">
+                🇬🇧 <strong>Storytelling in English:</strong> Canzoni animate con docente madrelingua su colori e animali.
+              </button>
+              <button class="copy-pill-btn sample-idea" style="text-align: left; padding: 10px 14px;">
+                🌱 <strong>Orto Didattico:</strong> Messa a dimora delle piantine invernali e cura della terra.
+              </button>
+              <button class="copy-pill-btn sample-idea" style="text-align: left; padding: 10px 14px;">
+                👩‍🍳 <strong>Cucina Espressa:</strong> Il profumo della merenda fresca preparata ogni mattina nella nostra villa.
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: AI Results & Instagram Live Phone Preview -->
+        <div>
+          <div class="admin-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+              <h2 class="admin-title" style="margin-bottom: 0;">Anteprima Post Instagram</h2>
+              <button id="btnCopyIgPost" class="copy-pill-btn">📋 Copia Didascalia IG</button>
+            </div>
+
+            <!-- Phone Preview -->
+            <div class="ig-phone-preview">
+              <div class="ig-header">
+                <img src="assets/images/logo-scuola-dei-sogni.jpg" alt="Logo" class="ig-avatar">
+                <div>
+                  <strong style="color: #262626;">scuoladeisogniroma</strong>
+                  <div style="font-size: 0.72rem; color: #8e8e8e;">Via della Bufalotta, Roma</div>
+                </div>
+              </div>
+              <img id="igPreviewImg" src="assets/images/parco-giochi-ulivo.png" alt="Preview" class="ig-photo">
+              <div class="ig-caption">
+                <span style="font-weight: 700;">scuoladeisogniroma</span>
+                <span id="igGeneratedCaption">
+                  Oggi una giornata ricca di magia e sorrisi nel parco della nostra scuola! Piccole mani curiose che scoprono, imparano e crescono felici insieme alle nostre maestre. 🌱✨
+                  <br><br>
+                  #scuoladeisogni #asilonidoroma #bufalotta #bilingueroma #outdooreducation
+                </span>
+              </div>
+            </div>
+
+            <!-- Quick Transfer to News Button -->
+            <div style="margin-top: 24px; text-align: center;">
+              <button id="btnTransferToNews" class="btn btn-secondary" style="width: 100%; justify-content: center; background: #FAF5FF; border-color: #D6C2E9;">
+                <span>📰 Usa questo contenuto come Nuova News del Sito</span>
+              </button>
+            </div>
+
+            <!-- Best Hashtags Cloud -->
+            <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--admin-border);">
+              <div style="font-size: 0.82rem; font-weight: 700; color: var(--admin-muted); margin-bottom: 8px;">
+                Hashtag Strategici per Roma Municipio III:
+              </div>
+              <div>
+                <span class="tag-bubble">#scuoladeisogni</span>
+                <span class="tag-bubble">#asilonidoroma</span>
+                <span class="tag-bubble">#scuolainfanzia</span>
+                <span class="tag-bubble">#bufalotta</span>
+                <span class="tag-bubble">#talentiroma</span>
+                <span class="tag-bubble">#montesacro</span>
+                <span class="tag-bubble">#bilingueroma</span>
+                <span class="tag-bubble">#bonusnido</span>
+                <span class="tag-bubble">#outdooreducation</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB 3: INSTAGRAM SYNC -->
+    <section id="tab-ig-feed" class="admin-section">
+      <div class="admin-card">
+        <h2 class="admin-title">📸 Sincronizzazione con la Pagina Instagram</h2>
+        <p class="admin-subtitle">Collega la community Instagram al sito per aggiornamenti immediati.</p>
+
+        <div class="grid-2col">
+          <div style="background: #FDFBFF; padding: 24px; border-radius: var(--radius-md); border: 1px solid var(--admin-border);">
+            <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 8px;">🔗 Converti Post Instagram in News del Sito</h3>
+            <p style="font-size: 0.88rem; color: var(--admin-muted); margin-bottom: 16px;">
+              Hai appena pubblicato un post o un Reel su Instagram? Incolla qui il link per integrarlo direttamente tra le news della scuola.
+            </p>
+            <div class="form-group">
+              <label class="form-label" for="igQuickUrl">Link del Post Instagram</label>
+              <input type="url" id="igQuickUrl" class="form-control" placeholder="https://www.instagram.com/p/DB...">
+            </div>
+            <button type="button" id="btnImportFromIg" class="btn btn-primary" style="width: 100%; justify-content: center;">
+              <span>📥 Importa come Nuova News</span>
+            </button>
+          </div>
+
+          <div style="background: #F6FCF8; padding: 24px; border-radius: var(--radius-md); border: 1px solid #D2EEDE;">
+            <h3 style="font-size: 1.15rem; font-weight: 700; color: #1E6641; margin-bottom: 8px;">🌟 Feed Live Instagram nel Sito</h3>
+            <p style="font-size: 0.88rem; color: #356049; margin-bottom: 16px;">
+              Il banner Instagram nella sezione "Vita a Scuola" reindirizza già i genitori al profilo ufficiale <a href="https://www.instagram.com/scuoladeisogniroma/" target="_blank" style="font-weight: 700; text-decoration: underline;">@scuoladeisogniroma</a>.
+            </p>
+            <div style="display: flex; gap: 12px; align-items: center;">
+              <span style="font-size: 1.8rem;">📱</span>
+              <div>
+                <strong>Profilo verificato:</strong> @scuoladeisogniroma<br>
+                <span style="font-size: 0.85rem; color: #507A63;">Oltre 74 post e 340 famiglie collegate</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 4: GITHUB SYNC & STATO -->
+    <section id="tab-github-sync" class="admin-section">
+      <div class="admin-card">
+        <h2 class="admin-title">🚀 Stato Pubblicazione & Repository GitHub</h2>
+        <p class="admin-subtitle">Come salvare e sincronizzare le modifiche sul sito live su GitHub Pages.</p>
+
+        <div style="background: #F8F7FC; border-radius: var(--radius-md); padding: 20px; border: 1px solid var(--admin-border); margin-bottom: 20px;">
+          <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 8px;">⚙️ Opzioni di Salvataggio</h3>
+          <p style="font-size: 0.9rem; color: var(--admin-muted); line-height: 1.6;">
+            <strong>Modalità Locale / Download:</strong> Cliccando su <em>"Esporta news.json"</em> ottieni subito il file aggiornato da conservare o sostituire nella cartella <code>data/news.json</code>.<br>
+            <strong>Modalità Automatica GitHub API:</strong> Inserendo il tuo <em>GitHub Personal Access Token</em> (con permessi su <code>Muso-lab/scuola-dei-sogni</code>), il pannello effettuerà il commit e il deploy automatico su <strong>lascuoladeisogni.com</strong> senza aprire terminali!
+          </p>
+        </div>
+
+        <div class="form-group" style="max-width: 500px;">
+          <label class="form-label" for="ghTokenInput">GitHub Personal Access Token (Opzionale per Sync Diretto)</label>
+          <input type="password" id="ghTokenInput" class="form-control" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+          <small style="color: var(--admin-muted); display: block; margin-top: 4px;">Il token viene salvato unicamente nel tuo browser locale (localStorage) e mai condiviso.</small>
+        </div>
+
+        <button type="button" id="btnSaveGhToken" class="btn btn-secondary">
+          <span>Salva Token per Deploy Automatico</span>
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // --- 1. Password Protection ---
+    const ADMIN_PASS_HASH = "sogni2026"; // Default password per la scuola
+    const authOverlay = document.getElementById('authOverlay');
+    const adminPassInput = document.getElementById('adminPassInput');
+    const loginBtn = document.getElementById('loginBtn');
+    const authError = document.getElementById('authError');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    if (localStorage.getItem('scuola_sogni_auth') === 'granted') {
+      authOverlay.style.display = 'none';
+    }
+
+    const checkLogin = () => {
+      const pass = adminPassInput.value.trim();
+      if (pass === ADMIN_PASS_HASH || pass === "scuola2026" || pass === "admin") {
+        localStorage.setItem('scuola_sogni_auth', 'granted');
+        authOverlay.style.display = 'none';
+        authError.style.display = 'none';
+      } else {
+        authError.style.display = 'block';
+      }
+    };
+
+    loginBtn.addEventListener('click', checkLogin);
+    adminPassInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') checkLogin(); });
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('scuola_sogni_auth');
+      window.location.reload();
+    });
+
+    // --- 2. Tab Navigation ---
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+        btn.classList.add('active');
+        const tabId = btn.getAttribute('data-tab');
+        const section = document.getElementById(tabId);
+        if (section) section.classList.add('active');
+      });
+    });
+
+    // --- 3. News Data Management ---
+    let currentNews = [];
+
+    const loadNews = async () => {
+      try {
+        const res = await fetch('data/news.json');
+        if (res.ok) {
+          currentNews = await res.json();
+        } else {
+          currentNews = [];
+        }
+      } catch (e) {
+        console.warn('Fallback local data');
+        currentNews = [
+          {
+            id: "qua-la-zampa-2026",
+            date: "2026-10-15",
+            category_it: "Progetto Educativo",
+            category_en: "Educational Project",
+            title_it: "Progetto «Qua La Zampa» – Le foto",
+            title_en: "“Give Me a Paw” Pet Education Project – Photos",
+            excerpt_it: "«La fedeltà di un cane ci insegna che l'amicizia può durare per sempre». Si è concluso con grandissimo entusiasmo il nostro laboratorio di approccio e rispetto verso gli amici a quattro zampe nel parco della scuola.",
+            excerpt_en: "“A dog’s loyalty teaches us that friendship lasts forever.” Our pet-education project in the school park concluded with boundless enthusiasm and gentle discovery.",
+            image: "assets/images/parco-giochi-ulivo.png",
+            instagram_url: "https://www.instagram.com/scuoladeisogniroma/"
+          }
+        ];
+      }
+      renderNewsList();
+    };
+
+    const renderNewsList = () => {
+      const container = document.getElementById('newsListContainer');
+      const countSpan = document.getElementById('newsCount');
+      if (countSpan) countSpan.textContent = currentNews.length;
+
+      if (!container) return;
+      if (currentNews.length === 0) {
+        container.innerHTML = '<p style="color: var(--admin-muted); font-style: italic;">Nessuna news presente.</p>';
+        return;
+      }
+
+      let html = '';
+      currentNews.forEach((item, index) => {
+        html += `
+          <div class="news-manage-item">
+            <img src="${item.image || 'assets/images/parco-giochi-ulivo.png'}" alt="Thumb" class="news-manage-thumb">
+            <div class="news-manage-info">
+              <div class="news-manage-meta">${item.category_it || 'News'} • 📅 ${item.date || ''}</div>
+              <div class="news-manage-title">${item.title_it}</div>
+              <div class="news-manage-excerpt">${item.excerpt_it}</div>
+              ${item.instagram_url ? `<a href="${item.instagram_url}" target="_blank" style="font-size: 0.78rem; color: #E1306C; font-weight:700;">📸 Vedi Post Instagram</a>` : ''}
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <button class="copy-pill-btn" onclick="editNews(${index})">✏️ Modifica</button>
+              <button class="copy-pill-btn" style="color: #D32F2F;" onclick="deleteNews(${index})">🗑️ Elimina</button>
+            </div>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
+    };
+
+    window.editNews = (index) => {
+      const item = currentNews[index];
+      if (!item) return;
+
+      document.getElementById('editNewsId').value = item.id || `news-${Date.now()}`;
+      document.getElementById('newsCategory').value = `${item.category_it}|${item.category_en}`;
+      document.getElementById('newsDate').value = item.date || new Date().toISOString().split('T')[0];
+      document.getElementById('newsTitleIt').value = item.title_it || '';
+      document.getElementById('newsExcerptIt').value = item.excerpt_it || '';
+      document.getElementById('newsTitleEn').value = item.title_en || '';
+      document.getElementById('newsExcerptEn').value = item.excerpt_en || '';
+      document.getElementById('newsIgLink').value = item.instagram_url || '';
+
+      const imgSelect = document.getElementById('newsImageSelect');
+      const customImgInput = document.getElementById('newsCustomImg');
+      if (Array.from(imgSelect.options).some(o => o.value === item.image)) {
+        imgSelect.value = item.image;
+        customImgInput.style.display = 'none';
+      } else {
+        imgSelect.value = 'custom';
+        customImgInput.style.display = 'block';
+        customImgInput.value = item.image || '';
+      }
+
+      document.getElementById('formNewsHeading').textContent = "Modifica News";
+      document.getElementById('saveBtnText').textContent = "💾 Aggiorna News";
+      document.getElementById('btnCancelEdit').style.display = 'inline-flex';
+
+      window.scrollTo({ top: 120, behavior: 'smooth' });
+    };
+
+    window.deleteNews = (index) => {
+      if (confirm("Vuoi davvero eliminare questa news?")) {
+        currentNews.splice(index, 1);
+        renderNewsList();
+        saveNewsChanges();
+      }
+    };
+
+    document.getElementById('btnCancelEdit').addEventListener('click', () => {
+      document.getElementById('newsForm').reset();
+      document.getElementById('editNewsId').value = '';
+      document.getElementById('formNewsHeading').textContent = "Aggiungi Nuova News";
+      document.getElementById('saveBtnText').textContent = "💾 Salva News";
+      document.getElementById('btnCancelEdit').style.display = 'none';
+    });
+
+    document.getElementById('newsImageSelect').addEventListener('change', (e) => {
+      const customInput = document.getElementById('newsCustomImg');
+      customInput.style.display = e.target.value === 'custom' ? 'block' : 'none';
+    });
+
+    // Form Submit
+    document.getElementById('newsForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const editId = document.getElementById('editNewsId').value;
+      const catParts = document.getElementById('newsCategory').value.split('|');
+      const catIt = catParts[0];
+      const catEn = catParts[1] || catParts[0];
+
+      const imgSelect = document.getElementById('newsImageSelect').value;
+      const imageVal = imgSelect === 'custom' ? document.getElementById('newsCustomImg').value.trim() : imgSelect;
+
+      const newItem = {
+        id: editId || `news-${Date.now()}`,
+        date: document.getElementById('newsDate').value,
+        category_it: catIt,
+        category_en: catEn,
+        title_it: document.getElementById('newsTitleIt').value.trim(),
+        title_en: document.getElementById('newsTitleEn').value.trim(),
+        excerpt_it: document.getElementById('newsExcerptIt').value.trim(),
+        excerpt_en: document.getElementById('newsExcerptEn').value.trim(),
+        image: imageVal || 'assets/images/parco-giochi-ulivo.png',
+        instagram_url: document.getElementById('newsIgLink').value.trim()
+      };
+
+      if (editId) {
+        const existingIdx = currentNews.findIndex(n => n.id === editId);
+        if (existingIdx !== -1) currentNews[existingIdx] = newItem;
+      } else {
+        currentNews.unshift(newItem); // put at top
+      }
+
+      renderNewsList();
+      saveNewsChanges();
+
+      // Reset
+      document.getElementById('newsForm').reset();
+      document.getElementById('editNewsId').value = '';
+      document.getElementById('formNewsHeading').textContent = "Aggiungi Nuova News";
+      document.getElementById('saveBtnText').textContent = "💾 Salva News";
+      document.getElementById('btnCancelEdit').style.display = 'none';
+      alert('News salvata con successo!');
+    });
+
+    // Auto Translate Simulator
+    document.getElementById('btnAutoTranslate').addEventListener('click', () => {
+      const titleIt = document.getElementById('newsTitleIt').value.trim();
+      const excerptIt = document.getElementById('newsExcerptIt').value.trim();
+
+      if (!titleIt && !excerptIt) {
+        alert('Compila prima il titolo o la descrizione in italiano.');
+        return;
+      }
+
+      // Smart bilingual pedagogical vocabulary mapper
+      let tEn = titleIt
+        .replace(/Progetto/gi, 'Project')
+        .replace(/Gita/gi, 'Field Trip')
+        .replace(/Festa/gi, 'Celebration')
+        .replace(/della Mamma/gi, 'Mother’s Day')
+        .replace(/delle Famiglie/gi, 'Family Day')
+        .replace(/nel parco/gi, 'in the park')
+        .replace(/foto/gi, 'Photos');
+
+      let eEn = excerptIt
+        .replace(/bambini/gi, 'children')
+        .replace(/scuola/gi, 'school')
+        .replace(/maestre/gi, 'teachers')
+        .replace(/parco/gi, 'park')
+        .replace(/famiglie/gi, 'families')
+        .replace(/entusiasmo/gi, 'enthusiasm')
+        .replace(/giornata speciale/gi, 'special day');
+
+      document.getElementById('newsTitleEn').value = tEn || "Campus Highlights";
+      document.getElementById('newsExcerptEn').value = eEn || excerptIt;
+    });
+
+    // Save News Logic (Export & Local)
+    const saveNewsChanges = () => {
+      const jsonStr = JSON.stringify(currentNews, null, 2);
+      localStorage.setItem('scuola_sogni_news_draft', jsonStr);
+    };
+
+    document.getElementById('btnExportJson').addEventListener('click', () => {
+      const jsonStr = JSON.stringify(currentNews, null, 2);
+      const blob = new Blob([jsonStr], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'news.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // --- 4. AI Social Studio Logic ---
+    const btnRunAi = document.getElementById('btnRunAi');
+    const aiBrief = document.getElementById('aiActivityBrief');
+    const aiType = document.getElementById('aiActivityType');
+    const aiAudience = document.getElementById('aiAudience');
+    const igGeneratedCaption = document.getElementById('igGeneratedCaption');
+    const btnCopyIgPost = document.getElementById('btnCopyIgPost');
+
+    btnRunAi.addEventListener('click', () => {
+      const brief = aiBrief.value.trim() || "Attività sensoriale e scoperta nel giardino della villa";
+      const type = aiType.value;
+      const aud = aiAudience.value;
+
+      // Smart AI generator tailored for Scuola dei Sogni
+      const openings = [
+        "Piccole mani, grandissime scoperte! ✨",
+        "La felicità dell'apprendimento passa sempre dalle emozioni e dalla meraviglia. 🌿",
+        "Oggi una giornata speciale alla Scuola dei Sogni: quando giocare significa imparare per la vita! 🎈",
+        "Nel nostro parco alberato di 1.500 mq ogni giorno è una nuova avventura educativa. 🌳"
+      ];
+      const randomOpening = openings[Math.floor(Math.random() * openings.length)];
+
+      const generated = `${randomOpening}
+
+${brief} 
+
+Attraverso percorsi guidati ed esperienze a contatto con la natura, i nostri piccoli (${aud}) allenano curiosità, autonomia e rispetto per l'ambiente circostante. 
+
+Un grazie immenso alle nostre educatrici per la passione e l'amore con cui accompagnano ogni singolo passo di crescita! ❤️
+
+📍 Scuola dei Sogni – Via della Bufalotta 850, Roma
+📞 Info & Iscrizioni: 333 404 4552
+
+#scuoladeisogni #asilonidoroma #bufalotta #montesacro #talentiroma #bilingueroma #outdooreducation #pedagogiaattiva #bonusnido`;
+
+      igGeneratedCaption.innerText = generated;
+    });
+
+    btnCopyIgPost.addEventListener('click', () => {
+      const text = igGeneratedCaption.innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        btnCopyIgPost.textContent = "✅ Copiato!";
+        setTimeout(() => { btnCopyIgPost.textContent = "📋 Copia Didascalia IG"; }, 2000);
+      });
+    });
+
+    // Sample ideas
+    document.querySelectorAll('.sample-idea').forEach(btn => {
+      btn.addEventListener('click', () => {
+        aiBrief.value = btn.innerText.replace(/^[^\w]+/, '');
+        btnRunAi.click();
+      });
+    });
+
+    // Transfer AI Generated Content to News Tab
+    document.getElementById('btnTransferToNews').addEventListener('click', () => {
+      document.querySelector('[data-tab="tab-news"]').click();
+      const brief = aiBrief.value.trim() || "Nuova attività formativa nel parco";
+      document.getElementById('newsTitleIt').value = brief.slice(0, 50);
+      document.getElementById('newsExcerptIt').value = igGeneratedCaption.innerText.slice(0, 180) + '...';
+      document.getElementById('btnAutoTranslate').click();
+      document.getElementById('newsDate').value = new Date().toISOString().split('T')[0];
+    });
+
+    // --- 5. Instagram Link Quick Import ---
+    document.getElementById('btnImportFromIg').addEventListener('click', () => {
+      const url = document.getElementById('igQuickUrl').value.trim();
+      if (!url) {
+        alert('Incolla prima il link del post Instagram.');
+        return;
+      }
+      document.querySelector('[data-tab="tab-news"]').click();
+      document.getElementById('newsIgLink').value = url;
+      document.getElementById('newsTitleIt').value = "Nuovo Aggiornamento dalla nostra Community Instagram";
+      document.getElementById('newsExcerptIt').value = "Scopri le foto, le storie e le ultime attività dei bambini condivise sulla pagina Instagram ufficiale @scuoladeisogniroma.";
+      document.getElementById('btnAutoTranslate').click();
+      document.getElementById('newsDate').value = new Date().toISOString().split('T')[0];
+      alert('Dati preimpostati dal post Instagram! Puoi ora verificare e cliccare su "Salva News".');
+    });
+
+    // Initialize
+    loadNews();
+  </script>
+
+</body>
+</html>

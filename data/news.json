@@ -1,0 +1,41 @@
+[
+  {
+    "id": "qua-la-zampa-2026",
+    "date": "2026-10-15",
+    "category_it": "Progetto Educativo",
+    "category_en": "Educational Project",
+    "title_it": "Progetto «Qua La Zampa» – Le foto",
+    "title_en": "“Give Me a Paw” Pet Education Project – Photos",
+    "excerpt_it": "«La fedeltà di un cane ci insegna che l'amicizia può durare per sempre». Si è concluso con grandissimo entusiasmo il nostro laboratorio di approccio e rispetto verso gli amici a quattro zampe nel parco della scuola.",
+    "excerpt_en": "“A dog’s loyalty teaches us that friendship lasts forever.” Our pet-education project in the school park concluded with boundless enthusiasm and gentle discovery.",
+    "image": "assets/images/parco-giochi-ulivo.png",
+    "instagram_url": "https://www.instagram.com/scuoladeisogniroma/",
+    "featured": true
+  },
+  {
+    "id": "gita-zoomarine-2026",
+    "date": "2026-06-20",
+    "category_it": "Gita di Fine Anno",
+    "category_en": "End-of-Year Field Trip",
+    "title_it": "Gita di Fine Anno – Zoomarine",
+    "title_en": "End-of-Year Field Trip – Zoomarine",
+    "excerpt_it": "È stata una settimana indimenticabile alla Scuola dei Sogni! Una giornata speciale a Zoomarine tra l'eleganza dei delfini e la scoperta della vita marina insieme a maestre, compagni e famiglie.",
+    "excerpt_en": "An unforgettable week at Scuola dei Sogni! A special celebratory trip to Zoomarine exploring marine life and cheering for our kindergarten graduates heading to primary school.",
+    "image": "assets/images/parco-alberato-viale.png",
+    "instagram_url": "https://www.instagram.com/scuoladeisogniroma/",
+    "featured": false
+  },
+  {
+    "id": "festa-famiglie-2026",
+    "date": "2026-05-12",
+    "category_it": "Eventi & Famiglie",
+    "category_en": "Family Events",
+    "title_it": "Festa della Mamma e delle Famiglie",
+    "title_en": "Mother’s Day & Family Celebration",
+    "excerpt_it": "Un momento magico di condivisione, sorrisi, poesie e piccoli capolavori realizzati con il cuore dai bambini. Grazie a tutte le mamme e alle famiglie che rendono unica la nostra comunità!",
+    "excerpt_en": "A magical morning of laughter, poems, and heartfelt keepsakes handcrafted by the children. Thank you to all the mothers and families who make our community so special!",
+    "image": "assets/images/giardino-giochi-scuola.png",
+    "instagram_url": "https://www.instagram.com/scuoladeisogniroma/",
+    "featured": false
+  }
+]
