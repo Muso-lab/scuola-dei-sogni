@@ -158,13 +158,20 @@ document.addEventListener('DOMContentLoaded', () => {
           const category = isEnglish ? (item.category_en || item.category_it) : (item.category_it || item.category_en);
           const title = isEnglish ? (item.title_en || item.title_it) : (item.title_it || item.title_en);
           const excerpt = isEnglish ? (item.excerpt_en || item.excerpt_it) : (item.excerpt_it || item.excerpt_en);
-          const img = item.image || 'assets/images/parco-giochi-ulivo.png';
+          const validImgMap = {
+            'assets/images/parco-giochi-ulivo.png': 'assets/images/parco-giochi-scivolo.png',
+            'assets/images/giardino-giochi-scuola.png': 'assets/images/parco-giochi-scivolo.png',
+            'assets/images/parco-alberato-viale.png': 'assets/images/viale-giardino-ulivo.png',
+            'assets/images/scuola-ingresso-cancello.png': 'assets/images/cancello-targa-ingresso.png'
+          };
+          let rawImg = item.image || 'assets/images/parco-giochi-scivolo.png';
+          const img = validImgMap[rawImg] || rawImg;
           const link = item.instagram_url ? `<a href="${item.instagram_url}" target="_blank" rel="noopener" class="news-ig-badge" title="Instagram Post">📸 Instagram</a>` : '';
 
           html += `
             <article class="news-card" data-id="${item.id || ''}">
               <div class="news-thumb">
-                <img src="${img}" alt="${title}" loading="lazy">
+                <img src="${img}" alt="${title}" loading="lazy" onerror="this.onerror=null;this.src='assets/images/parco-giochi-scivolo.png';">
                 ${link}
               </div>
               <div class="news-body">

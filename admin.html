@@ -479,11 +479,15 @@
             <div class="form-group">
               <label class="form-label" for="newsImageSelect">Immagine della News</label>
               <select id="newsImageSelect" class="form-control">
-                <option value="assets/images/parco-giochi-ulivo.png">Ulivo secolare e parco giochi</option>
-                <option value="assets/images/giardino-giochi-scuola.png">Prato e area verde all'aperto</option>
-                <option value="assets/images/parco-alberato-viale.png">Viale alberato della villa</option>
-                <option value="assets/images/villa-facciata-arco.png">Ingresso villa arco lilla</option>
-                <option value="assets/images/scuola-ingresso-cancello.png">Cancello ingresso Via Bufalotta</option>
+                <option value="assets/images/parco-giochi-scivolo.png">Parco giochi con scivolo a casetta e prato</option>
+                <option value="assets/images/viale-giardino-ulivo.png">Viale alberato con ulivo secolare</option>
+                <option value="assets/images/villa-facciata-arco.png">Facciata villa con arco lilla</option>
+                <option value="assets/images/cancello-targa-ingresso.png">Cancello d'ingresso con targa ufficiale</option>
+                <option value="assets/images/classroom-nido.jpg">Spazio nido e area gioco interna</option>
+                <option value="assets/images/activities-labs.jpg">Laboratori e attività creative</option>
+                <option value="assets/images/news-cane.jpg">Laboratorio con cane (Qua la zampa)</option>
+                <option value="assets/images/news-zoomarine.jpg">Uscita Zoomarine e parco marino</option>
+                <option value="assets/images/news-famiglie.jpg">Festa della famiglia e bambini</option>
                 <option value="custom">Altro URL immagine personalizzato...</option>
               </select>
               <input type="text" id="newsCustomImg" class="form-control" placeholder="https://... o assets/images/tua-foto.jpg" style="margin-top: 8px; display: none;">
@@ -964,7 +968,13 @@
         const token = getStoredToken();
         let res;
         if (token) {
-          res = await fetch(`https://raw.githubusercontent.com/${GITHUB_REPO}/${GITHUB_BRANCH}/${GITHUB_FILE_PATH}?_=${Date.now()}`);
+          // Usa API ufficiale GitHub con Bearer token per evitare qualsiasi ritardo di cache CDN
+          res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}?ref=${GITHUB_BRANCH}&_=${Date.now()}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Accept': 'application/vnd.github.v3.raw'
+            }
+          });
         } else {
           res = await fetch(`data/news.json?_=${Date.now()}`);
         }
@@ -1006,7 +1016,7 @@
       currentNews.forEach((item, index) => {
         html += `
           <div class="news-manage-item">
-            <img src="${item.image || 'assets/images/parco-giochi-ulivo.png'}" alt="Thumb" class="news-manage-thumb">
+            <img src="${item.image || 'assets/images/parco-giochi-scivolo.png'}" alt="Thumb" class="news-manage-thumb">
             <div class="news-manage-info">
               <div class="news-manage-meta">${item.category_it || 'News'} • 📅 ${item.date || ''}</div>
               <div class="news-manage-title">${item.title_it}</div>
@@ -1095,7 +1105,7 @@
         title_en: document.getElementById('newsTitleEn').value.trim(),
         excerpt_it: document.getElementById('newsExcerptIt').value.trim(),
         excerpt_en: document.getElementById('newsExcerptEn').value.trim(),
-        image: imageVal || 'assets/images/parco-giochi-ulivo.png',
+        image: imageVal || 'assets/images/parco-giochi-scivolo.png',
         instagram_url: document.getElementById('newsIgLink').value.trim()
       };
 
