@@ -613,7 +613,7 @@
                   <div style="font-size: 0.72rem; color: #8e8e8e;">Via della Bufalotta, Roma</div>
                 </div>
               </div>
-              <img id="igPreviewImg" src="assets/images/parco-giochi-ulivo.png" alt="Preview" class="ig-photo">
+              <img id="igPreviewImg" src="assets/images/parco-giochi-scivolo.png" alt="Preview" class="ig-photo" onerror="this.onerror=null;this.src='assets/images/villa-facciata-arco.png';">
               <div class="ig-caption">
                 <span style="font-weight: 700;">scuoladeisogniroma</span>
                 <span id="igGeneratedCaption">
@@ -1016,7 +1016,7 @@
       currentNews.forEach((item, index) => {
         html += `
           <div class="news-manage-item">
-            <img src="${item.image || 'assets/images/parco-giochi-scivolo.png'}" alt="Thumb" class="news-manage-thumb">
+            <img src="${item.image || 'assets/images/parco-giochi-scivolo.png'}" alt="Thumb" class="news-manage-thumb" onerror="this.onerror=null;this.src='assets/images/parco-giochi-scivolo.png';">
             <div class="news-manage-info">
               <div class="news-manage-meta">${item.category_it || 'News'} • 📅 ${item.date || ''}</div>
               <div class="news-manage-title">${item.title_it}</div>
