@@ -1,5 +1,17 @@
 [
   {
+    "id": "news-1793874136261",
+    "date": "2026-11-05",
+    "category_it": "Gita di Fine Anno",
+    "category_en": "End-of-Year Field Trip",
+    "title_it": "TEST",
+    "title_en": "TEST",
+    "excerpt_it": "TEST",
+    "excerpt_en": "TEST",
+    "image": "assets/images/parco-giochi-ulivo.png",
+    "instagram_url": ""
+  },
+  {
     "id": "qua-la-zampa-2026",
     "date": "2026-10-15",
     "category_it": "Progetto Educativo",
