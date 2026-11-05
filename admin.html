@@ -1397,6 +1397,44 @@
       return null;
     };
 
+    // Helper: Safely delete user-uploaded news image from GitHub (leaves structural images untouched)
+    const deleteUploadedImageFromGitHub = async (imagePath) => {
+      if (!imagePath || !imagePath.startsWith('assets/images/uploads/')) {
+        return; // Non tocca mai le foto strutturali (villa, parco, scivolo, ecc.)
+      }
+      const token = getStoredToken();
+      if (!token) return;
+
+      try {
+        const checkRes = await fetch('https://api.github.com/repos/' + GITHUB_REPO + '/contents/' + imagePath + '?ref=' + GITHUB_BRANCH + '&_=' + Date.now(), {
+          headers: {
+            'Authorization': 'Bearer ' + token,
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        });
+        if (!checkRes.ok) return;
+        const fileData = await checkRes.json();
+        const sha = fileData.sha;
+
+        await fetch('https://api.github.com/repos/' + GITHUB_REPO + '/contents/' + imagePath, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': 'Bearer ' + token,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            message: 'Elimina foto news rimossa: ' + imagePath,
+            sha: sha,
+            branch: GITHUB_BRANCH
+          })
+        });
+        console.log('Foto eliminata con successo da GitHub:', imagePath);
+      } catch (err) {
+        console.warn('Impossibile rimuovere la foto da GitHub:', err);
+      }
+    };
+
     // Export JSON Backup
     document.getElementById('btnExportJson').addEventListener('click', () => {
       const jsonStr = JSON.stringify(currentNews, null, 2);
