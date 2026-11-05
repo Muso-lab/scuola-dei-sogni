@@ -1262,3 +1262,61 @@ textarea.form-control {
   .form-row-2col { grid-template-columns: 1fr; }
   .bonus-nido-banner { flex-direction: column; text-align: center; }
 }
+
+
+/* ========================================================
+   Language Switcher & Labs Grid 7-Card Balance
+   ======================================================== */
+.lang-switch-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-alt);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  border: 1px solid var(--border);
+  margin-left: 8px;
+}
+.lang-switch-wrap .lang-btn {
+  color: var(--muted);
+  text-decoration: none;
+  padding: 2px 4px;
+  transition: color var(--transition);
+}
+.lang-switch-wrap .lang-btn:hover {
+  color: var(--primary);
+}
+.lang-switch-wrap .lang-btn.active {
+  color: var(--primary);
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.lang-switch-wrap .lang-divider {
+  color: var(--border);
+  font-weight: 300;
+}
+.top-item.lang-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 3px 10px;
+  border-radius: 999px;
+  text-decoration: none;
+  color: var(--white);
+  transition: background 0.2s;
+}
+.top-item.lang-flag:hover {
+  background: rgba(255, 255, 255, 0.35);
+  color: var(--white);
+}
+
+@media (min-width: 992px) {
+  .labs-grid .lab-card:last-child:nth-child(3n + 1) {
+    grid-column: 2 / 3;
+  }
+}
