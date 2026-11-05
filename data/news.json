@@ -1,5 +1,17 @@
 [
   {
+    "id": "news-1793876857802",
+    "date": "2026-11-05",
+    "category_it": "Progetto Educativo",
+    "category_en": "Educational Project",
+    "title_it": "Nuova attività formativa nel parco",
+    "title_en": "Nuova attività formativa in the park",
+    "excerpt_it": "Oggi una giornata ricca di magia e sorrisi nel parco della nostra scuola! Piccole mani curiose che scoprono, imparano e crescono felici insieme alle nostre maest...",
+    "excerpt_en": "Oggi una giornata ricca di magia e sorrisi nel park della nostra school! Piccole mani curiose che scoprono, imparano e crescono felici insieme alle nostre maest...",
+    "image": "assets/images/parco-giochi-scivolo.png",
+    "instagram_url": ""
+  },
+  {
     "id": "news-1793876550939",
     "date": "2026-11-15",
     "category_it": "Eventi & Famiglie",
