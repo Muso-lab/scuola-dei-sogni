@@ -14,6 +14,8 @@
       --admin-border: #E5DFEC;
       --admin-text: #2D2535;
       --admin-muted: #6E6278;
+      --green-status: #2E7D32;
+      --orange-status: #E65100;
     }
     body {
       background: var(--admin-bg);
@@ -51,10 +53,42 @@
     .admin-container {
       max-width: 1200px;
       width: 100%;
-      margin: 32px auto;
+      margin: 28px auto;
       padding: 0 20px;
       flex: 1;
     }
+    /* Sync Status Bar */
+    .sync-status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #FFFFFF;
+      padding: 12px 20px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--admin-border);
+      margin-bottom: 20px;
+      font-size: 0.88rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+    }
+    .sync-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+    }
+    .sync-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #9E9E9E;
+    }
+    .sync-dot.online { background: #4CAF50; box-shadow: 0 0 8px #4CAF50; }
+    .sync-dot.warning { background: #FF9800; }
+    .sync-dot.busy { background: #2196F3; animation: pulse 1s infinite; }
+    @keyframes pulse {
+      0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; }
+    }
+
     .admin-tabs {
       display: flex;
       gap: 8px;
@@ -166,15 +200,6 @@
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
-    .badge-chip {
-      display: inline-block;
-      font-size: 0.75rem;
-      padding: 3px 8px;
-      border-radius: 999px;
-      background: #EBE5F5;
-      color: var(--primary-dark);
-      font-weight: 700;
-    }
     /* AI Box */
     .ai-magic-box {
       background: linear-gradient(135deg, #FAF4FF 0%, #F0FFF8 100%);
@@ -262,6 +287,32 @@
       padding: 12px 14px;
       line-height: 1.5;
     }
+    /* Toast Alert Notification */
+    #adminToast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #231C2B;
+      color: #FFFFFF;
+      padding: 16px 24px;
+      border-radius: 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+      display: none;
+      align-items: center;
+      gap: 12px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      z-index: 99999;
+      animation: slideInUp 0.3s ease;
+    }
+    @keyframes slideInUp {
+      from { transform: translateY(40px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    #adminToast.success { background: #2E7D32; }
+    #adminToast.error { background: #C62828; }
+    #adminToast.info { background: #1565C0; }
+
     /* Login overlay */
     #authOverlay {
       position: fixed;
@@ -286,10 +337,17 @@
     @media (max-width: 768px) {
       .grid-2col { grid-template-columns: 1fr; }
       .admin-tabs { flex-wrap: wrap; }
+      .sync-status-bar { flex-direction: column; gap: 10px; align-items: flex-start; }
     }
   </style>
 </head>
 <body>
+
+  <!-- Toast Notification System -->
+  <div id="adminToast">
+    <span id="toastIcon">ℹ️</span>
+    <span id="toastMsg">Notifica</span>
+  </div>
 
   <!-- Access Authentication Overlay -->
   <div id="authOverlay">
@@ -331,6 +389,20 @@
   <!-- Main Content Container -->
   <main class="admin-container">
 
+    <!-- Live Sync Status Banner -->
+    <div class="sync-status-bar">
+      <div class="sync-indicator">
+        <span class="sync-dot online" id="statusDot"></span>
+        <span id="statusText">Stato: Pronto alla pubblicazione</span>
+      </div>
+      <div style="display: flex; gap: 10px; align-items: center;">
+        <span style="color: var(--admin-muted); font-size: 0.82rem;" id="tokenBadge">GitHub API: Non configurato</span>
+        <button id="btnHeaderPublish" class="btn btn-primary" style="padding: 6px 16px; font-size: 0.82rem;">
+          <span>🚀 Pubblica Online su GitHub</span>
+        </button>
+      </div>
+    </div>
+
     <!-- Navigation Tabs -->
     <div class="admin-tabs">
       <button class="tab-btn active" data-tab="tab-news">
@@ -343,7 +415,7 @@
         <span>📸 Instagram Sync</span>
       </button>
       <button class="tab-btn" data-tab="tab-github-sync">
-        <span>🚀 Stato & Pubblicazione</span>
+        <span>⚙️ Configura GitHub Token</span>
       </button>
     </div>
 
@@ -411,6 +483,7 @@
                 <option value="assets/images/giardino-giochi-scuola.png">Prato e area verde all'aperto</option>
                 <option value="assets/images/parco-alberato-viale.png">Viale alberato della villa</option>
                 <option value="assets/images/villa-facciata-arco.png">Ingresso villa arco lilla</option>
+                <option value="assets/images/scuola-ingresso-cancello.png">Cancello ingresso Via Bufalotta</option>
                 <option value="custom">Altro URL immagine personalizzato...</option>
               </select>
               <input type="text" id="newsCustomImg" class="form-control" placeholder="https://... o assets/images/tua-foto.jpg" style="margin-top: 8px; display: none;">
@@ -422,8 +495,8 @@
             </div>
 
             <div style="display: flex; gap: 10px; margin-top: 24px;">
-              <button type="submit" class="btn btn-primary" style="flex: 1; justify-content: center;">
-                <span id="saveBtnText">💾 Salva News</span>
+              <button type="submit" class="btn btn-primary" id="btnSubmitNews" style="flex: 1; justify-content: center;">
+                <span id="saveBtnText">💾 Salva & Pubblica News</span>
               </button>
               <button type="button" id="btnCancelEdit" class="btn btn-secondary" style="display: none;">
                 Annulla
@@ -435,9 +508,12 @@
         <!-- Right: Lista News Esistenti -->
         <div>
           <div class="admin-card">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-              <h2 class="admin-title" style="margin-bottom: 0;">News Attualmente Online (<span id="newsCount">0</span>)</h2>
-              <button id="btnExportJson" class="copy-pill-btn">⬇️ Esporta news.json</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+              <h2 class="admin-title" style="margin-bottom: 0;">News Online (<span id="newsCount">0</span>)</h2>
+              <div style="display: flex; gap: 8px;">
+                <button id="btnReloadFromGh" class="copy-pill-btn" title="Ricarica dal repository">🔄 Ricarica</button>
+                <button id="btnExportJson" class="copy-pill-btn">⬇️ Scarica JSON</button>
+              </div>
             </div>
             <p class="admin-subtitle">Questi contenuti compaiono in tempo reale nella sezione Vita a Scuola sia in italiano che in inglese.</p>
 
@@ -613,37 +689,70 @@
       </div>
     </section>
 
-    <!-- TAB 4: GITHUB SYNC & STATO -->
+    <!-- TAB 4: GITHUB SYNC & TOKEN CONFIG -->
     <section id="tab-github-sync" class="admin-section">
       <div class="admin-card">
-        <h2 class="admin-title">🚀 Stato Pubblicazione & Repository GitHub</h2>
-        <p class="admin-subtitle">Come salvare e sincronizzare le modifiche sul sito live su GitHub Pages.</p>
+        <h2 class="admin-title">⚙️ Configura Pubblicazione Automatica GitHub</h2>
+        <p class="admin-subtitle">Collega il tuo GitHub Personal Access Token per pubblicare news sul sito con 1 solo click senza terminale.</p>
 
-        <div style="background: #F8F7FC; border-radius: var(--radius-md); padding: 20px; border: 1px solid var(--admin-border); margin-bottom: 20px;">
-          <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 8px;">⚙️ Opzioni di Salvataggio</h3>
-          <p style="font-size: 0.9rem; color: var(--admin-muted); line-height: 1.6;">
-            <strong>Modalità Locale / Download:</strong> Cliccando su <em>"Esporta news.json"</em> ottieni subito il file aggiornato da conservare o sostituire nella cartella <code>data/news.json</code>.<br>
-            <strong>Modalità Automatica GitHub API:</strong> Inserendo il tuo <em>GitHub Personal Access Token</em> (con permessi su <code>Muso-lab/scuola-dei-sogni</code>), il pannello effettuerà il commit e il deploy automatico su <strong>lascuoladeisogni.com</strong> senza aprire terminali!
-          </p>
+        <div style="background: #F8F7FC; border-radius: var(--radius-md); padding: 20px; border: 1px solid var(--admin-border); margin-bottom: 24px;">
+          <h3 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 8px;">📖 Istruzioni Rapide (1 minuto)</h3>
+          <ol style="font-size: 0.92rem; color: var(--admin-muted); line-height: 1.7; padding-left: 20px; margin: 0;">
+            <li>Accedi al tuo account GitHub <strong>Muso-lab</strong> e apri: <a href="https://github.com/settings/tokens" target="_blank" style="color: var(--primary-dark); font-weight: 700; text-decoration: underline;">github.com/settings/tokens</a>.</li>
+            <li>Clicca su <strong>"Generate new token"</strong> ➔ <strong>"Generate new token (classic)"</strong>.</li>
+            <li>Inserisci una nota (es. <em>Scuola dei Sogni CMS</em>) e metti la spunta solo sul permesso <strong><code>repo</code></strong>.</li>
+            <li>Clicca sul pulsante verde <strong>"Generate token"</strong> in fondo alla pagina e copia la stringa generata (inizia con <code>ghp_...</code>).</li>
+            <li>Incolla il token nel riquadro sottostante e premi <strong>"Salva & Connetti"</strong>. Fatto!</li>
+          </ol>
         </div>
 
-        <div class="form-group" style="max-width: 500px;">
-          <label class="form-label" for="ghTokenInput">GitHub Personal Access Token (Opzionale per Sync Diretto)</label>
-          <input type="password" id="ghTokenInput" class="form-control" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
-          <small style="color: var(--admin-muted); display: block; margin-top: 4px;">Il token viene salvato unicamente nel tuo browser locale (localStorage) e mai condiviso.</small>
+        <div style="max-width: 600px;">
+          <div class="form-group">
+            <label class="form-label" for="ghRepoInput">Repository GitHub</label>
+            <input type="text" id="ghRepoInput" class="form-control" value="Muso-lab/scuola-dei-sogni" readonly style="background: #F5F5F5;">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="ghBranchInput">Ramo (Branch)</label>
+            <input type="text" id="ghBranchInput" class="form-control" value="main" readonly style="background: #F5F5F5;">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="ghTokenInput">GitHub Personal Access Token (PAT) *</label>
+            <input type="password" id="ghTokenInput" class="form-control" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+            <small style="color: var(--admin-muted); display: block; margin-top: 6px;">Il token rimane memorizzato esclusivamente sul tuo dispositivo locale in sicurezza (localStorage) e non transita mai su server terzi.</small>
+          </div>
+
+          <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button type="button" id="btnSaveGhToken" class="btn btn-primary">
+              <span>💾 Salva & Connetti GitHub</span>
+            </button>
+            <button type="button" id="btnTestGhConn" class="btn btn-secondary">
+              <span>🔍 Verifica Connessione</span>
+            </button>
+          </div>
         </div>
 
-        <button type="button" id="btnSaveGhToken" class="btn btn-secondary">
-          <span>Salva Token per Deploy Automatico</span>
-        </button>
       </div>
     </section>
 
   </main>
 
   <script>
-    // --- 1. Password Protection ---
-    const ADMIN_PASS_HASH = "sogni2026"; // Default password per la scuola
+    // --- 1. Toast Notification Helper ---
+    const showToast = (msg, type = 'info', icon = 'ℹ️') => {
+      const toast = document.getElementById('adminToast');
+      const toastMsg = document.getElementById('toastMsg');
+      const toastIcon = document.getElementById('toastIcon');
+      toastMsg.textContent = msg;
+      toastIcon.textContent = icon;
+      toast.className = `admin-toast ${type}`;
+      toast.style.display = 'flex';
+      setTimeout(() => { toast.style.display = 'none'; }, 4000);
+    };
+
+    // --- 2. Password Protection ---
+    const ADMIN_PASS_HASH = "sogni2026";
     const authOverlay = document.getElementById('authOverlay');
     const adminPassInput = document.getElementById('adminPassInput');
     const loginBtn = document.getElementById('loginBtn');
@@ -660,6 +769,7 @@
         localStorage.setItem('scuola_sogni_auth', 'granted');
         authOverlay.style.display = 'none';
         authError.style.display = 'none';
+        showToast("Benvenuto nel pannello di gestione!", "success", "👋");
       } else {
         authError.style.display = 'block';
       }
@@ -672,7 +782,7 @@
       window.location.reload();
     });
 
-    // --- 2. Tab Navigation ---
+    // --- 3. Tab Navigation ---
     document.querySelectorAll('.tab-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -684,36 +794,186 @@
       });
     });
 
-    // --- 3. News Data Management ---
+    // --- 4. GitHub Token & Status Management ---
+    const GITHUB_REPO = "Muso-lab/scuola-dei-sogni";
+    const GITHUB_BRANCH = "main";
+    const GITHUB_FILE_PATH = "data/news.json";
+
+    const getStoredToken = () => localStorage.getItem('scuola_sogni_gh_token') || '';
+
+    const updateStatusUI = (status, text) => {
+      const dot = document.getElementById('statusDot');
+      const textSpan = document.getElementById('statusText');
+      const tokenBadge = document.getElementById('tokenBadge');
+      const token = getStoredToken();
+
+      if (token) {
+        tokenBadge.textContent = "GitHub API: Connesso ✅";
+        tokenBadge.style.color = "#2E7D32";
+      } else {
+        tokenBadge.textContent = "GitHub API: Non configurato (Salvataggio locale)";
+        tokenBadge.style.color = "#E65100";
+      }
+
+      if (dot) dot.className = `sync-dot ${status}`;
+      if (textSpan) textSpan.textContent = text;
+    };
+
+    // Load stored token in input field
+    const tokenInput = document.getElementById('ghTokenInput');
+    if (tokenInput && getStoredToken()) {
+      tokenInput.value = getStoredToken();
+    }
+    updateStatusUI('online', 'Pronto alla pubblicazione');
+
+    document.getElementById('btnSaveGhToken').addEventListener('click', () => {
+      const val = tokenInput.value.trim();
+      if (!val) {
+        localStorage.removeItem('scuola_sogni_gh_token');
+        updateStatusUI('warning', 'Token rimosso (modalità locale attiva)');
+        showToast("Token rimosso. Il salvataggio avverrà in locale.", "info", "ℹ️");
+        return;
+      }
+      localStorage.setItem('scuola_sogni_gh_token', val);
+      updateStatusUI('online', 'Token GitHub configurato!');
+      showToast("Token GitHub salvato con successo!", "success", "✅");
+    });
+
+    // Test GitHub Connection
+    document.getElementById('btnTestGhConn').addEventListener('click', async () => {
+      const token = getStoredToken();
+      if (!token) {
+        alert("Inserisci e salva prima il tuo Personal Access Token di GitHub.");
+        return;
+      }
+      updateStatusUI('busy', 'Verifica connessione con GitHub in corso...');
+      try {
+        const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        });
+        if (res.ok) {
+          const repoData = await res.json();
+          updateStatusUI('online', `Connesso a ${repoData.full_name}`);
+          showToast(`Connessione riuscita al repository ${repoData.full_name}!`, "success", "✅");
+        } else {
+          updateStatusUI('warning', 'Token non valido o permessi insufficienti');
+          alert(`Errore GitHub (${res.status}): Assicurati che il token abbia il permesso 'repo'.`);
+        }
+      } catch (err) {
+        updateStatusUI('warning', 'Errore di rete');
+        alert("Impossibile contattare le API di GitHub. Controlla la connessione internet.");
+      }
+    });
+
+    // --- 5. GitHub Direct Publish API ---
+    const publishToGitHub = async (jsonData) => {
+      const token = getStoredToken();
+      if (!token) {
+        // Fallback: save to localStorage & offer download
+        localStorage.setItem('scuola_sogni_news_draft', JSON.stringify(jsonData, null, 2));
+        showToast("Salvato localmente. Configura il token GitHub per pubblicare online in automatico.", "info", "💾");
+        return false;
+      }
+
+      updateStatusUI('busy', 'Pubblicazione in corso su GitHub Pages...');
+      showToast("Invio aggiornamenti a GitHub...", "info", "⏳");
+
+      try {
+        // Step 1: Get current file SHA
+        let sha = null;
+        const getRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}?ref=${GITHUB_BRANCH}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        });
+
+        if (getRes.ok) {
+          const fileData = await getRes.json();
+          sha = fileData.sha;
+        }
+
+        // Step 2: Encode content in base64 (UTF-8 safe)
+        const jsonString = JSON.stringify(jsonData, null, 2);
+        const encodedContent = btoa(unescape(encodeURIComponent(jsonString)));
+
+        // Step 3: Put/Commit updated file
+        const putPayload = {
+          message: `Aggiorna news dal pannello admin [${new Date().toLocaleDateString('it-IT')}]`,
+          content: encodedContent,
+          branch: GITHUB_BRANCH
+        };
+        if (sha) {
+          putPayload.sha = sha;
+        }
+
+        const putRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(putPayload)
+        });
+
+        if (putRes.ok) {
+          updateStatusUI('online', 'Pubblicato online con successo!');
+          showToast("Pubblicazione completata! Il sito si aggiorna in 30 secondi.", "success", "🚀");
+          return true;
+        } else {
+          const errData = await putRes.json();
+          updateStatusUI('warning', 'Errore pubblicazione GitHub');
+          alert(`Errore GitHub: ${errData.message || 'Impossibile salvare il file.'}`);
+          return false;
+        }
+      } catch (err) {
+        console.error(err);
+        updateStatusUI('warning', 'Errore di connessione GitHub');
+        alert("Errore durante la pubblicazione su GitHub. Verifica la connessione.");
+        return false;
+      }
+    };
+
+    // --- 6. News Data Management ---
     let currentNews = [];
 
     const loadNews = async () => {
+      updateStatusUI('busy', 'Caricamento news...');
       try {
-        const res = await fetch('data/news.json');
+        // Try fetching from GitHub directly or local
+        const token = getStoredToken();
+        let res;
+        if (token) {
+          res = await fetch(`https://raw.githubusercontent.com/${GITHUB_REPO}/${GITHUB_BRANCH}/${GITHUB_FILE_PATH}?_=${Date.now()}`);
+        } else {
+          res = await fetch(`data/news.json?_=${Date.now()}`);
+        }
+
         if (res.ok) {
           currentNews = await res.json();
         } else {
-          currentNews = [];
+          const localDraft = localStorage.getItem('scuola_sogni_news_draft');
+          if (localDraft) currentNews = JSON.parse(localDraft);
         }
       } catch (e) {
-        console.warn('Fallback local data');
-        currentNews = [
-          {
-            id: "qua-la-zampa-2026",
-            date: "2026-10-15",
-            category_it: "Progetto Educativo",
-            category_en: "Educational Project",
-            title_it: "Progetto «Qua La Zampa» – Le foto",
-            title_en: "“Give Me a Paw” Pet Education Project – Photos",
-            excerpt_it: "«La fedeltà di un cane ci insegna che l'amicizia può durare per sempre». Si è concluso con grandissimo entusiasmo il nostro laboratorio di approccio e rispetto verso gli amici a quattro zampe nel parco della scuola.",
-            excerpt_en: "“A dog’s loyalty teaches us that friendship lasts forever.” Our pet-education project in the school park concluded with boundless enthusiasm and gentle discovery.",
-            image: "assets/images/parco-giochi-ulivo.png",
-            instagram_url: "https://www.instagram.com/scuoladeisogniroma/"
-          }
-        ];
+        console.warn('Using fallback data', e);
+        const localDraft = localStorage.getItem('scuola_sogni_news_draft');
+        if (localDraft) {
+          currentNews = JSON.parse(localDraft);
+        }
       }
       renderNewsList();
+      updateStatusUI('online', 'Pronto alla pubblicazione');
     };
+
+    document.getElementById('btnReloadFromGh').addEventListener('click', () => {
+      loadNews();
+      showToast("Dati ricaricati dal repository!", "info", "🔄");
+    });
 
     const renderNewsList = () => {
       const container = document.getElementById('newsListContainer');
@@ -772,17 +1032,17 @@
       }
 
       document.getElementById('formNewsHeading').textContent = "Modifica News";
-      document.getElementById('saveBtnText').textContent = "💾 Aggiorna News";
+      document.getElementById('saveBtnText').textContent = "💾 Aggiorna & Pubblica";
       document.getElementById('btnCancelEdit').style.display = 'inline-flex';
 
       window.scrollTo({ top: 120, behavior: 'smooth' });
     };
 
-    window.deleteNews = (index) => {
-      if (confirm("Vuoi davvero eliminare questa news?")) {
+    window.deleteNews = async (index) => {
+      if (confirm("Vuoi davvero eliminare questa news e pubblicare l'aggiornamento online?")) {
         currentNews.splice(index, 1);
         renderNewsList();
-        saveNewsChanges();
+        await publishToGitHub(currentNews);
       }
     };
 
@@ -790,7 +1050,7 @@
       document.getElementById('newsForm').reset();
       document.getElementById('editNewsId').value = '';
       document.getElementById('formNewsHeading').textContent = "Aggiungi Nuova News";
-      document.getElementById('saveBtnText').textContent = "💾 Salva News";
+      document.getElementById('saveBtnText').textContent = "💾 Salva & Pubblica News";
       document.getElementById('btnCancelEdit').style.display = 'none';
     });
 
@@ -799,8 +1059,8 @@
       customInput.style.display = e.target.value === 'custom' ? 'block' : 'none';
     });
 
-    // Form Submit
-    document.getElementById('newsForm').addEventListener('submit', (e) => {
+    // Form Submit (Save & Publish)
+    document.getElementById('newsForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const editId = document.getElementById('editNewsId').value;
       const catParts = document.getElementById('newsCategory').value.split('|');
@@ -831,18 +1091,24 @@
       }
 
       renderNewsList();
-      saveNewsChanges();
 
-      // Reset
+      // Trigger Direct Publish to GitHub
+      const success = await publishToGitHub(currentNews);
+
+      // Reset Form
       document.getElementById('newsForm').reset();
       document.getElementById('editNewsId').value = '';
       document.getElementById('formNewsHeading').textContent = "Aggiungi Nuova News";
-      document.getElementById('saveBtnText').textContent = "💾 Salva News";
+      document.getElementById('saveBtnText').textContent = "💾 Salva & Pubblica News";
       document.getElementById('btnCancelEdit').style.display = 'none';
-      alert('News salvata con successo!');
     });
 
-    // Auto Translate Simulator
+    // Header Quick Publish Button
+    document.getElementById('btnHeaderPublish').addEventListener('click', async () => {
+      await publishToGitHub(currentNews);
+    });
+
+    // Auto Translate Helper
     document.getElementById('btnAutoTranslate').addEventListener('click', () => {
       const titleIt = document.getElementById('newsTitleIt').value.trim();
       const excerptIt = document.getElementById('newsExcerptIt').value.trim();
@@ -852,7 +1118,6 @@
         return;
       }
 
-      // Smart bilingual pedagogical vocabulary mapper
       let tEn = titleIt
         .replace(/Progetto/gi, 'Project')
         .replace(/Gita/gi, 'Field Trip')
@@ -873,14 +1138,10 @@
 
       document.getElementById('newsTitleEn').value = tEn || "Campus Highlights";
       document.getElementById('newsExcerptEn').value = eEn || excerptIt;
+      showToast("Traduzione inglese autocompilata!", "success", "✨");
     });
 
-    // Save News Logic (Export & Local)
-    const saveNewsChanges = () => {
-      const jsonStr = JSON.stringify(currentNews, null, 2);
-      localStorage.setItem('scuola_sogni_news_draft', jsonStr);
-    };
-
+    // Export JSON Backup
     document.getElementById('btnExportJson').addEventListener('click', () => {
       const jsonStr = JSON.stringify(currentNews, null, 2);
       const blob = new Blob([jsonStr], { type: 'application/json' });
@@ -890,9 +1151,10 @@
       a.download = 'news.json';
       a.click();
       URL.revokeObjectURL(url);
+      showToast("Download di news.json avviato!", "success", "⬇️");
     });
 
-    // --- 4. AI Social Studio Logic ---
+    // --- 7. AI Social Studio Logic ---
     const btnRunAi = document.getElementById('btnRunAi');
     const aiBrief = document.getElementById('aiActivityBrief');
     const aiType = document.getElementById('aiActivityType');
@@ -905,7 +1167,6 @@
       const type = aiType.value;
       const aud = aiAudience.value;
 
-      // Smart AI generator tailored for Scuola dei Sogni
       const openings = [
         "Piccole mani, grandissime scoperte! ✨",
         "La felicità dell'apprendimento passa sempre dalle emozioni e dalla meraviglia. 🌿",
@@ -928,17 +1189,18 @@ Un grazie immenso alle nostre educatrici per la passione e l'amore con cui accom
 #scuoladeisogni #asilonidoroma #bufalotta #montesacro #talentiroma #bilingueroma #outdooreducation #pedagogiaattiva #bonusnido`;
 
       igGeneratedCaption.innerText = generated;
+      showToast("Post Instagram generato con successo!", "success", "✨");
     });
 
     btnCopyIgPost.addEventListener('click', () => {
       const text = igGeneratedCaption.innerText;
       navigator.clipboard.writeText(text).then(() => {
         btnCopyIgPost.textContent = "✅ Copiato!";
+        showToast("Didascalia copiata negli appunti!", "success", "📋");
         setTimeout(() => { btnCopyIgPost.textContent = "📋 Copia Didascalia IG"; }, 2000);
       });
     });
 
-    // Sample ideas
     document.querySelectorAll('.sample-idea').forEach(btn => {
       btn.addEventListener('click', () => {
         aiBrief.value = btn.innerText.replace(/^[^\w]+/, '');
@@ -946,7 +1208,6 @@ Un grazie immenso alle nostre educatrici per la passione e l'amore con cui accom
       });
     });
 
-    // Transfer AI Generated Content to News Tab
     document.getElementById('btnTransferToNews').addEventListener('click', () => {
       document.querySelector('[data-tab="tab-news"]').click();
       const brief = aiBrief.value.trim() || "Nuova attività formativa nel parco";
@@ -954,9 +1215,10 @@ Un grazie immenso alle nostre educatrici per la passione e l'amore con cui accom
       document.getElementById('newsExcerptIt').value = igGeneratedCaption.innerText.slice(0, 180) + '...';
       document.getElementById('btnAutoTranslate').click();
       document.getElementById('newsDate').value = new Date().toISOString().split('T')[0];
+      showToast("Contenuto trasferito nella scheda News!", "info", "📰");
     });
 
-    // --- 5. Instagram Link Quick Import ---
+    // --- 8. Instagram Link Quick Import ---
     document.getElementById('btnImportFromIg').addEventListener('click', () => {
       const url = document.getElementById('igQuickUrl').value.trim();
       if (!url) {
@@ -969,10 +1231,10 @@ Un grazie immenso alle nostre educatrici per la passione e l'amore con cui accom
       document.getElementById('newsExcerptIt').value = "Scopri le foto, le storie e le ultime attività dei bambini condivise sulla pagina Instagram ufficiale @scuoladeisogniroma.";
       document.getElementById('btnAutoTranslate').click();
       document.getElementById('newsDate').value = new Date().toISOString().split('T')[0];
-      alert('Dati preimpostati dal post Instagram! Puoi ora verificare e cliccare su "Salva News".');
+      showToast("Post Instagram importato! Verifica e clicca Salva.", "info", "📥");
     });
 
-    // Initialize
+    // Start
     loadNews();
   </script>
 
