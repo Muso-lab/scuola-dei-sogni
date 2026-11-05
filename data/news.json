@@ -1,1 +1,14 @@
-[]
+[
+  {
+    "id": "news-1793875084175",
+    "date": "2026-11-05",
+    "category_it": "Progetto Educativo",
+    "category_en": "Educational Project",
+    "title_it": "PROGETTO PILOTA TEST",
+    "title_en": "Project PILOTA TEST",
+    "excerpt_it": "TEST",
+    "excerpt_en": "TEST",
+    "image": "assets/images/giardino-giochi-scuola.png",
+    "instagram_url": ""
+  }
+]
