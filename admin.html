@@ -882,47 +882,65 @@
       showToast("Invio aggiornamenti a GitHub...", "info", "⏳");
 
       try {
-        // Step 1: Get current file SHA
-        let sha = null;
-        const getRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}?ref=${GITHUB_BRANCH}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/vnd.github.v3+json'
-          }
-        });
-
-        if (getRes.ok) {
-          const fileData = await getRes.json();
-          sha = fileData.sha;
-        }
-
-        // Step 2: Encode content in base64 (UTF-8 safe)
         const jsonString = JSON.stringify(jsonData, null, 2);
         const encodedContent = btoa(unescape(encodeURIComponent(jsonString)));
 
-        // Step 3: Put/Commit updated file
-        const putPayload = {
-          message: `Aggiorna news dal pannello admin [${new Date().toLocaleDateString('it-IT')}]`,
-          content: encodedContent,
-          branch: GITHUB_BRANCH
+        // Funzione helper per ottenere sempre l'ultimo SHA fresco senza cache del browser
+        const fetchLatestSha = async () => {
+          const cacheBuster = Date.now();
+          const getRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}?ref=${GITHUB_BRANCH}&t=${cacheBuster}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Accept': 'application/vnd.github.v3+json',
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache'
+            }
+          });
+          if (getRes.ok) {
+            const data = await getRes.json();
+            return data.sha;
+          }
+          return null;
         };
-        if (sha) {
-          putPayload.sha = sha;
-        }
 
-        const putRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`, {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Accept': 'application/vnd.github.v3+json',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(putPayload)
-        });
+        let sha = await fetchLatestSha();
+
+        // Tentativo di commit con retry automatico in caso di conflitto SHA
+        const attemptCommit = async (currentSha) => {
+          const payload = {
+            message: `Aggiorna news dal pannello admin [${new Date().toLocaleDateString('it-IT')} ${new Date().toLocaleTimeString('it-IT')}]`,
+            content: encodedContent,
+            branch: GITHUB_BRANCH
+          };
+          if (currentSha) {
+            payload.sha = currentSha;
+          }
+
+          return await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE_PATH}`, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Accept': 'application/vnd.github.v3+json',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+        };
+
+        let putRes = await attemptCommit(sha);
+
+        // Se GitHub risponde 409 Conflict (SHA non coincidente), rifacciamo il fetch dello SHA fresco e riproviamo subito!
+        if (putRes.status === 409) {
+          console.warn("Rilevato conflitto SHA GitHub, aggiorno SHA e riprovo...");
+          sha = await fetchLatestSha();
+          putRes = await attemptCommit(sha);
+        }
 
         if (putRes.ok) {
           updateStatusUI('online', 'Pubblicato online con successo!');
-          showToast("Pubblicazione completata! Il sito si aggiorna in 30 secondi.", "success", "🚀");
+          showToast("Pubblicato online! GitHub Pages aggiorna il sito in 30 secondi.", "success", "🚀");
+          // Aggiorna anche la cache locale
+          localStorage.setItem('scuola_sogni_news_draft', jsonString);
           return true;
         } else {
           const errData = await putRes.json();
