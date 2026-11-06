@@ -1,17 +1,5 @@
 [
   {
-    "id": "news-1793876550939",
-    "date": "2026-11-15",
-    "category_it": "Eventi & Famiglie",
-    "category_en": "Family Events",
-    "title_it": "TEST EVENTO FAMIGLIE",
-    "title_en": "TEST EVENTO FAMIGLIE",
-    "excerpt_it": "Test Evento Famiglie",
-    "excerpt_en": "Test Evento families",
-    "image": "assets/images/news-famiglie.jpg",
-    "instagram_url": ""
-  },
-  {
     "id": "news-1793875084175",
     "date": "2026-11-05",
     "category_it": "Progetto Educativo",
