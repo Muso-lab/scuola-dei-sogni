@@ -448,7 +448,12 @@
             </div>
 
             <div style="background: rgba(143, 113, 175, 0.05); padding: 14px; border-radius: var(--radius-md); margin-bottom: 16px; border: 1px dashed var(--border);">
-              <div style="font-weight: 700; font-size: 0.85rem; color: var(--primary-dark); margin-bottom: 8px;">🇮🇹 Versione Italiana</div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; gap: 8px; flex-wrap: wrap;">
+                <div style="font-weight: 700; font-size: 0.85rem; color: var(--primary-dark);">🇮🇹 Versione Italiana</div>
+                <button type="button" id="btnAiPolishIt" class="copy-pill-btn" style="font-size: 0.75rem; background: #FAF5FF; border-color: #D6C2E9; color: var(--primary-dark);">
+                  ✨ Correggi & Migliora con AI
+                </button>
+              </div>
               <div class="form-group">
                 <label class="form-label" for="newsTitleIt">Titolo in Italiano *</label>
                 <input type="text" id="newsTitleIt" class="form-control" placeholder="Es. Visita della Polizia Stradale al parco" required>
@@ -582,6 +587,7 @@
               <div class="form-group">
                 <label class="form-label" for="aiActivityType">Tipo di Esperienza</label>
                 <select id="aiActivityType" class="form-control">
+                  <option value="Pet Therapy & Animali">🐾 Pet Therapy & Animali</option>
                   <option value="Natura & Orto Didattico">🌱 Natura & Orto Didattico</option>
                   <option value="Laboratorio in Lingua Inglese">🇬🇧 Laboratorio in Lingua Inglese</option>
                   <option value="Arte, Colori & Manipolazione">🎨 Arte & Manipolazione</option>
@@ -770,6 +776,34 @@
           </div>
         </div>
 
+      </div>
+
+      <!-- Gemini AI Key Config Card -->
+      <div class="admin-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 6px;">
+          <h2 class="admin-title" style="margin-bottom: 0;">✨ Assistente AI Reale (Google Gemini — Gratuito)</h2>
+          <span id="geminiStatusBadge" style="font-size: 0.82rem; font-weight: 700; color: #E65100;">AI Locale (Base)</span>
+        </div>
+        <p class="admin-subtitle">Collega una chiave gratuita di Google AI Studio per correggere refusi, riscrivere testi in stile pedagogico e generare post Instagram su misura.</p>
+
+        <div style="background: #FAF5FF; border-radius: var(--radius-md); padding: 16px 20px; border: 1px solid #E2D4F0; margin-bottom: 20px;">
+          <ol style="font-size: 0.9rem; color: var(--admin-muted); line-height: 1.65; padding-left: 20px; margin: 0;">
+            <li>Apri <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: var(--primary-dark); font-weight: 700; text-decoration: underline;">aistudio.google.com/app/apikey</a> ed entra con il tuo account Google.</li>
+            <li>Clicca su <strong>"Create API key"</strong> (è gratuita, senza costi).</li>
+            <li>Copia la chiave (inizia con <code>AIza...</code>) e incollala qui sotto.</li>
+          </ol>
+        </div>
+
+        <div style="max-width: 600px;">
+          <div class="form-group">
+            <label class="form-label" for="geminiKeyInput">Google Gemini API Key (Opzionale)</label>
+            <input type="password" id="geminiKeyInput" class="form-control" placeholder="AIzaSy...">
+            <small style="color: var(--admin-muted); display: block; margin-top: 6px;">Salvata solo nel tuo browser locale (localStorage). Senza chiave funziona comunque il correttore ortografico/formattazione locale.</small>
+          </div>
+          <button type="button" id="btnSaveGeminiKey" class="btn btn-primary">
+            <span>✨ Salva Chiave AI Gemini</span>
+          </button>
+        </div>
       </div>
     </section>
 
@@ -1515,7 +1549,126 @@
       showToast("Download di news.json avviato!", "success", "⬇️");
     });
 
-    // --- 7. AI Social Studio Logic ---
+    // --- 7. Real Gemini AI + Smart Local Polish & Social Studio ---
+    const getGeminiKey = () => localStorage.getItem('scuola_sogni_gemini_key') || '';
+
+    const updateGeminiBadge = () => {
+      const badge = document.getElementById('geminiStatusBadge');
+      const input = document.getElementById('geminiKeyInput');
+      const key = getGeminiKey();
+      if (input && key && !input.value) input.value = key;
+      if (badge) {
+        if (key) {
+          badge.textContent = 'Gemini AI: Attivo ✅';
+          badge.style.color = '#2E7D32';
+        } else {
+          badge.textContent = 'Modalità Locale (Inserisci chiave per AI completa)';
+          badge.style.color = '#E65100';
+        }
+      }
+    };
+    updateGeminiBadge();
+
+    const btnSaveGeminiKey = document.getElementById('btnSaveGeminiKey');
+    if (btnSaveGeminiKey) {
+      btnSaveGeminiKey.addEventListener('click', () => {
+        const val = document.getElementById('geminiKeyInput').value.trim();
+        if (!val) {
+          localStorage.removeItem('scuola_sogni_gemini_key');
+          updateGeminiBadge();
+          showToast("Chiave Gemini rimossa.", "info", "ℹ️");
+          return;
+        }
+        localStorage.setItem('scuola_sogni_gemini_key', val);
+        updateGeminiBadge();
+        showToast("Chiave Gemini AI salvata! Ora hai l'assistente AI completo.", "success", "✨");
+      });
+    }
+
+    const callGemini = async (promptText) => {
+      const key = getGeminiKey();
+      if (!key) return null;
+      const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=' + encodeURIComponent(key);
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: promptText }] }]
+        })
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error?.message || 'Errore API Gemini (' + res.status + ')');
+      }
+      const data = await res.json();
+      return data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    };
+
+    const localTextCleanup = (text) => {
+      if (!text) return '';
+      return text
+        .replace(/[ \t]+/g, ' ')
+        .replace(/ ?([.,;:!?]) ?/g, '$1 ')
+        .replace(/ \n/g, '\n')
+        .replace(/\n{3,}/g, '\n\n')
+        .replace(/(^|[.!?\n]\s+)([a-zàèéìòù])/g, (m, p1, p2) => p1 + p2.toUpperCase())
+        .trim();
+    };
+
+    // AI Polish & Correct inside News Form
+    const btnAiPolishIt = document.getElementById('btnAiPolishIt');
+    if (btnAiPolishIt) {
+      btnAiPolishIt.addEventListener('click', async () => {
+        const titleIt = document.getElementById('newsTitleIt').value.trim();
+        const excerptIt = document.getElementById('newsExcerptIt').value.trim();
+        if (!titleIt && !excerptIt) {
+          alert('Scrivi prima almeno qualche parola nel titolo o nella descrizione in italiano.');
+          return;
+        }
+
+        const origLabel = btnAiPolishIt.innerHTML;
+        btnAiPolishIt.disabled = true;
+        btnAiPolishIt.innerHTML = '⏳ Miglioramento AI...';
+
+        try {
+          if (getGeminiKey()) {
+            const prompt = `Sei la coordinatrice didattica di "Scuola dei Sogni", asilo nido e scuola dell'infanzia bilingue (0-6 anni) a Roma Bufalotta.
+Correggi eventuali refusi grammaticali o ortografici e migliora in modo caldo, autentico, professionale e coinvolgente per i genitori il seguente testo di una news scolastica (senza inventare fatti o dettagli non presenti nella bozza, mantenendo eventuali nomi di sezioni o partner citati).
+Se il testo è solo un breve appunto, sviluppalo in 2-3 brevi paragrafi leggibili.
+Fornisci anche una traduzione naturale in inglese per la sezione internazionale del sito.
+
+Bozza Titolo: "${titleIt}"
+Bozza Testo: "${excerptIt}"
+
+Rispondi SOLO in formato JSON valido con queste esatte chiavi (nessun testo fuori dal JSON):
+{"title_it": "...", "excerpt_it": "...", "title_en": "...", "excerpt_en": "..."}`;
+
+            const rawReply = await callGemini(prompt);
+            const jsonMatch = rawReply.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              const parsed = JSON.parse(jsonMatch[0]);
+              if (parsed.title_it) document.getElementById('newsTitleIt').value = parsed.title_it;
+              if (parsed.excerpt_it) document.getElementById('newsExcerptIt').value = parsed.excerpt_it;
+              if (parsed.title_en) document.getElementById('newsTitleEn').value = parsed.title_en;
+              if (parsed.excerpt_en) document.getElementById('newsExcerptEn').value = parsed.excerpt_en;
+              showToast("Testo corretto, migliorato e tradotto con Gemini AI!", "success", "✨");
+            }
+          } else {
+            // Smart local cleanup fallback
+            if (titleIt) document.getElementById('newsTitleIt').value = localTextCleanup(titleIt);
+            if (excerptIt) document.getElementById('newsExcerptIt').value = localTextCleanup(excerptIt);
+            showToast("Formattazione e punteggiatura sistemate! (Per riscrittura AI completa aggiungi una chiave Gemini gratuita in Impostazioni)", "info", "ℹ️");
+          }
+        } catch (err) {
+          console.error(err);
+          alert("Errore AI: " + err.message);
+        } finally {
+          btnAiPolishIt.disabled = false;
+          btnAiPolishIt.innerHTML = origLabel;
+        }
+      });
+    }
+
     const btnRunAi = document.getElementById('btnRunAi');
     const aiBrief = document.getElementById('aiActivityBrief');
     const aiType = document.getElementById('aiActivityType');
@@ -1523,34 +1676,72 @@
     const igGeneratedCaption = document.getElementById('igGeneratedCaption');
     const btnCopyIgPost = document.getElementById('btnCopyIgPost');
 
-    btnRunAi.addEventListener('click', () => {
+    btnRunAi.addEventListener('click', async () => {
       const brief = aiBrief.value.trim() || "Attività sensoriale e scoperta nel giardino della villa";
       const type = aiType.value;
       const aud = aiAudience.value;
 
-      const openings = [
-        "Piccole mani, grandissime scoperte! ✨",
-        "La felicità dell'apprendimento passa sempre dalle emozioni e dalla meraviglia. 🌿",
-        "Oggi una giornata speciale alla Scuola dei Sogni: quando giocare significa imparare per la vita! 🎈",
-        "Nel nostro parco alberato di 1.500 mq ogni giorno è una nuova avventura educativa. 🌳"
-      ];
-      const randomOpening = openings[Math.floor(Math.random() * openings.length)];
+      const origText = btnRunAi.innerHTML;
+      btnRunAi.disabled = true;
+      btnRunAi.innerHTML = '<span>⏳ Generazione in corso...</span>';
 
-      const generated = `${randomOpening}
+      try {
+        if (getGeminiKey()) {
+          const prompt = `Sei la social media manager e coordinatrice pedagogica di "Scuola dei Sogni" (asilo nido e scuola dell'infanzia bilingue a Roma Bufalotta, Via della Bufalotta 850).
+Scrivi una didascalia Instagram calda, empatica, curata e grammaticalmente impeccabile per questo post:
+- Argomento / Appunti: "${brief}"
+- Categoria: "${type}"
+- Fascia d'età: "${aud}"
 
-${brief} 
+Includi:
+1. Una frase d'apertura emozionante con 1-2 emoji adatte.
+2. 2 brevi paragrafi che raccontano il valore educativo dell'esperienza per i bambini (senza inventare dettagli falsi).
+3. Chiusura con indirizzo (📍 Via della Bufalotta 850, Roma) e telefono (📞 333 404 4552).
+4. Hashtag pertinenti in fondo (#scuoladeisogni #asilonidoroma #bufalotta #montesacro #talentiroma #bilingueroma ecc.).`;
 
-Attraverso percorsi guidati ed esperienze a contatto con la natura, i nostri piccoli (${aud}) allenano curiosità, autonomia e rispetto per l'ambiente circostante. 
+          const aiPost = await callGemini(prompt);
+          if (aiPost) {
+            igGeneratedCaption.innerText = aiPost.trim();
+            showToast("Post Instagram creato su misura con Gemini AI!", "success", "✨");
+            return;
+          }
+        }
 
-Un grazie immenso alle nostre educatrici per la passione e l'amore con cui accompagnano ogni singolo passo di crescita! ❤️
+        // Fallback locale migliorato per categoria
+        const categoryOpenings = {
+          'Pet Therapy & Animali': "Un incontro speciale fatto di dolcezza, carezze e grandi emozioni! 🐾💛",
+          'Natura & Orto Didattico': "Piccole mani nella terra, grandissime scoperte nella natura! 🌱✨",
+          'Laboratorio in Lingua Inglese': "Learning English naturally through play, songs and smiles! 🇬🇧🎈",
+          'Arte, Colori & Manipolazione': "Spazio alla fantasia, ai colori e alla creatività dei nostri piccoli artisti! 🎨✨",
+          'Psicomotricità & Gioco nel Parco': "Movimento, equilibrio ed energia positiva nel nostro parco di 1.500 mq! 🤸🌳",
+          'Musica & Ritmo': "Note, ritmo e tanta armonia per crescere ascoltando il mondo! 🎵😊",
+          'Festa & Condivisione con Famiglie': "Momenti preziosi di gioia condivisa insieme alle nostre famiglie! ✨❤️"
+        };
+        const opening = categoryOpenings[type] || "Oggi una giornata speciale alla Scuola dei Sogni! 🎈";
+        const cleanedBrief = localTextCleanup(brief);
+
+        const generated = `${opening}
+
+${cleanedBrief}
+
+Attraverso esperienze guidate e su misura per i piccoli (${aud}), coltiviamo ogni giorno curiosità, empatia, autonomia e serenità.
+
+Un grazie speciale alle nostre educatrici per la passione e la cura con cui accompagnano ogni passo di crescita! ❤️
 
 📍 Scuola dei Sogni – Via della Bufalotta 850, Roma
-📞 Info & Iscrizioni: 333 404 4552
+📞 Info & Visite: 333 404 4552
 
 #scuoladeisogni #asilonidoroma #bufalotta #montesacro #talentiroma #bilingueroma #outdooreducation #pedagogiaattiva #bonusnido`;
 
-      igGeneratedCaption.innerText = generated;
-      showToast("Post Instagram generato con successo!", "success", "✨");
+        igGeneratedCaption.innerText = generated;
+        showToast("Post Instagram generato! (Con chiave Gemini AI in Impostazioni ottieni testi personalizzati)", "success", "✨");
+      } catch (err) {
+        console.error(err);
+        alert("Errore nella generazione AI: " + err.message);
+      } finally {
+        btnRunAi.disabled = false;
+        btnRunAi.innerHTML = origText;
+      }
     });
 
     btnCopyIgPost.addEventListener('click', () => {
@@ -1558,7 +1749,7 @@ Un grazie immenso alle nostre educatrici per la passione e l'amore con cui accom
       navigator.clipboard.writeText(text).then(() => {
         btnCopyIgPost.textContent = "✅ Copiato!";
         showToast("Didascalia copiata negli appunti!", "success", "📋");
-        setTimeout(() => { btnCopyIgPost.textContent = "📋 Copia Didascalia IG"; }, 2000);
+        setTimeout(() => { btnCopyIgPost.textContent = "📋 Copia Testo IG"; }, 2000);
       });
     });
 
@@ -1572,10 +1763,17 @@ Un grazie immenso alle nostre educatrici per la passione e l'amore con cui accom
     document.getElementById('btnTransferToNews').addEventListener('click', () => {
       document.querySelector('[data-tab="tab-news"]').click();
       const brief = aiBrief.value.trim() || "Nuova attività formativa nel parco";
-      document.getElementById('newsTitleIt').value = brief.slice(0, 50);
-      document.getElementById('newsExcerptIt').value = igGeneratedCaption.innerText.slice(0, 180) + '...';
+      document.getElementById('newsTitleIt').value = brief.slice(0, 65);
+      // Trasferisce il testo pulito senza gli hashtag finali
+      const cleanBody = igGeneratedCaption.innerText.split('\n#')[0].trim();
+      document.getElementById('newsExcerptIt').value = cleanBody;
       document.getElementById('btnAutoTranslate').click();
       document.getElementById('newsDate').value = new Date().toISOString().split('T')[0];
+
+      if (pendingGalleryItems.length > 0) {
+        tabImgUpload.click();
+        renderUploadGrid();
+      }
       showToast("Contenuto trasferito nella scheda News!", "info", "📰");
     });
 
