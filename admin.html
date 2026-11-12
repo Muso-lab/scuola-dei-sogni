@@ -1718,7 +1718,7 @@
       return defaults;
     };
 
-    const callGemini = async (promptText, onProgress) => {
+    const callGemini = async (promptText, onProgress, options = {}) => {
       const key = getGeminiKey();
       if (!key) return null;
       const report = (msg) => { if (typeof onProgress === 'function') onProgress(msg); };
@@ -1727,6 +1727,10 @@
       const models = await getAvailableGeminiModels(key);
       const candidates = models.slice(0, 3);
       let lastErrMsg = 'Servizio AI temporaneamente occupato. Riprova tra qualche secondo.';
+      const genConfig = { temperature: 0.7 };
+      if (options.json) {
+        genConfig.responseMimeType = 'application/json';
+      }
 
       for (let attempt = 0; attempt < 2; attempt++) {
         if (attempt > 0) {
@@ -1742,7 +1746,7 @@
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 contents: [{ parts: [{ text: promptText }] }],
-                generationConfig: { temperature: 0.7 }
+                generationConfig: genConfig
               })
             }, 10000);
 
@@ -1834,11 +1838,18 @@ Bozza Testo: "${excerptIt}"
 Rispondi SOLO in formato JSON valido con queste esatte chiavi (nessun testo fuori dal JSON):
 {"title_it": "...", "excerpt_it": "...", "title_en": "...", "excerpt_en": "..."}`;
 
-            const aiRes = await callGemini(prompt, (stepMsg) => updateStatusUI(stepMsg));
-            const rawReply = aiRes?.text || '';
+            const aiRes = await callGemini(prompt, (stepMsg) => updateStatusUI(stepMsg), { json: true });
+            const rawReply = (aiRes?.text || '').replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
             const jsonMatch = rawReply.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
-              const parsed = JSON.parse(jsonMatch[0]);
+              let parsed;
+              try {
+                parsed = JSON.parse(jsonMatch[0]);
+              } catch (parseErr) {
+                // Gestisce eventuali a-capo reali dentro le stringhe JSON
+                const sanitized = jsonMatch[0].replace(/\r?\n/g, '\\n');
+                parsed = JSON.parse(sanitized);
+              }
               if (parsed.title_it) document.getElementById('newsTitleIt').value = parsed.title_it;
               if (parsed.excerpt_it) document.getElementById('newsExcerptIt').value = parsed.excerpt_it;
               if (parsed.title_en) document.getElementById('newsTitleEn').value = parsed.title_en;
@@ -1846,6 +1857,7 @@ Rispondi SOLO in formato JSON valido con queste esatte chiavi (nessun testo fuor
               updateStatusUI(`✅ Completato con <strong>${aiRes.model}</strong>`, '#EBF8F2', '#B7E4CE', '#1E6641');
               showToast("Testo corretto, migliorato e tradotto con Gemini AI!", "success", "✨");
             } else {
+              console.warn('Raw AI reply:', rawReply);
               throw new Error('Risposta AI non in formato JSON valido.');
             }
           } else {
