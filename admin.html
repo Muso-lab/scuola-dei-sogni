@@ -1252,21 +1252,69 @@
       await publishToGitHub(currentNews);
     });
 
-    // --- 6.1 Real Neural Auto Translate Helper (MyMemory API) ---
-    const translateToEnglish = async (text) => {
-      if (!text || !text.trim()) return '';
-      try {
-        const clean = text.trim();
-        const url = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(clean) + '&langpair=it|en';
-        const res = await fetch(url);
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.responseData && data.responseData.translatedText) {
+    // --- 6.1 Real Neural Auto Translate Helper (Gemini AI + Chunked MyMemory Fallback) ---
+    const translateChunkMyMemory = async (chunk) => {
+      const url = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(chunk) + '&langpair=it|en';
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.responseStatus === 200 && data.responseData && data.responseData.translatedText) {
+          const txt = data.responseData.translatedText;
+          if (!txt.includes('QUERY LENGTH LIMIT EXCEEDED')) {
             const dec = document.createElement('textarea');
-            dec.innerHTML = data.responseData.translatedText;
+            dec.innerHTML = txt;
             return dec.value;
           }
         }
+      }
+      return chunk;
+    };
+
+    const translateToEnglish = async (text) => {
+      if (!text || !text.trim()) return '';
+      const clean = text.trim();
+
+      // 1. Se la chiave Gemini AI è attiva, usa Gemini (nessun limite di 500 caratteri, qualità madrelingua)
+      if (typeof getGeminiKey === 'function' && getGeminiKey()) {
+        try {
+          const prompt = `Traduci in inglese naturale, caldo e curato questo testo per il sito di un asilo nido e scuola dell'infanzia bilingue. Mantieni eventuali emoji e la suddivisione in paragrafi. Rispondi SOLO con il testo tradotto, senza commenti o virgolette.\n\n${clean}`;
+          const aiTrans = await callGemini(prompt);
+          if (aiTrans && aiTrans.trim()) return aiTrans.trim();
+        } catch (err) {
+          console.warn('Gemini translation fallback to MyMemory:', err);
+        }
+      }
+
+      // 2. Fallback MyMemory con suddivisione automatica in blocchi <= 420 caratteri
+      try {
+        if (clean.length <= 420) {
+          return await translateChunkMyMemory(clean);
+        }
+        const paragraphs = clean.split(/\n+/);
+        const translatedParas = [];
+        for (const para of paragraphs) {
+          if (para.length <= 420) {
+            translatedParas.push(await translateChunkMyMemory(para));
+          } else {
+            // Spezza per frasi se un singolo paragrafo supera 420 caratteri
+            const sentences = para.match(/[^.!?]+[.!?]*\s*/g) || [para];
+            let buffer = '';
+            let outPara = '';
+            for (const s of sentences) {
+              if ((buffer + s).length > 420 && buffer) {
+                outPara += (outPara ? ' ' : '') + await translateChunkMyMemory(buffer.trim());
+                buffer = s;
+              } else {
+                buffer += s;
+              }
+            }
+            if (buffer.trim()) {
+              outPara += (outPara ? ' ' : '') + await translateChunkMyMemory(buffer.trim());
+            }
+            translatedParas.push(outPara);
+          }
+        }
+        return translatedParas.join('\n\n');
       } catch (err) {
         console.warn('Translation API error:', err);
       }
@@ -1652,8 +1700,9 @@
           if (getGeminiKey()) {
             const prompt = `Sei la coordinatrice didattica di "Scuola dei Sogni", asilo nido e scuola dell'infanzia bilingue (0-6 anni) a Roma Bufalotta.
 Correggi eventuali refusi grammaticali o ortografici e migliora in modo caldo, autentico, professionale e coinvolgente per i genitori il seguente testo di una news scolastica (senza inventare fatti o dettagli non presenti nella bozza, mantenendo eventuali nomi di sezioni o partner citati).
-Se il testo è solo un breve appunto, sviluppalo in 2-3 brevi paragrafi leggibili.
-Fornisci anche una traduzione naturale in inglese per la sezione internazionale del sito.
+Se il testo è solo un breve appunto, sviluppalo in massimo 2 brevi paragrafi leggibili.
+VINCOLO DI LUNGHEZZA: "title_it" max 65 caratteri; "excerpt_it" tra 200 e 450 caratteri (mai oltre 480 caratteri), sintetico, caldo e scorrevole su smartphone.
+Fornisci anche una traduzione naturale in inglese per la sezione internazionale del sito (rispettando la stessa lunghezza).
 
 Bozza Titolo: "${titleIt}"
 Bozza Testo: "${excerptIt}"
@@ -1713,7 +1762,7 @@ Scrivi una didascalia Instagram calda, empatica, curata e grammaticalmente impec
 
 Includi:
 1. Una frase d'apertura emozionante con 1-2 emoji adatte.
-2. 2 brevi paragrafi che raccontano il valore educativo dell'esperienza per i bambini (senza inventare dettagli falsi).
+2. Massimo 2 brevi paragrafi che raccontano il valore educativo dell'esperienza per i bambini (senza inventare dettagli falsi). VINCOLO DI LUNGHEZZA: il testo principale (esclusi indirizzo e hashtag) deve stare entro 450 caratteri.
 3. Chiusura con indirizzo (📍 Via della Bufalotta 850, Roma) e telefono (📞 333 404 4552).
 4. Hashtag pertinenti in fondo (#scuoladeisogni #asilonidoroma #bufalotta #montesacro #talentiroma #bilingueroma ecc.).`;
 
