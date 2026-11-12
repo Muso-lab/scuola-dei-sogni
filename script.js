@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-    // 6. Dynamic News Loader (Zero-Glitch Stale-While-Revalidate & Responsive Carousel)
+      // 6. Dynamic News Loader (Zero-Glitch Stale-While-Revalidate, Carousel & Multi-Photo Lightbox)
   const newsContainer = document.querySelector('.news-grid');
   if (newsContainer) {
     const isEnglish = document.documentElement.lang === 'en';
@@ -152,6 +152,125 @@ document.addEventListener('DOMContentLoaded', () => {
       'assets/images/parco-alberato-viale.png': 'assets/images/viale-giardino-ulivo.png',
       'assets/images/scuola-ingresso-cancello.png': 'assets/images/cancello-targa-ingresso.png'
     };
+
+    const resolveImg = (raw) => validImgMap[raw] || raw || 'assets/images/parco-giochi-scivolo.png';
+
+    // Inject News Detail & Gallery Modal once
+    let modalOverlay = document.getElementById('newsDetailModal');
+    if (!modalOverlay) {
+      modalOverlay = document.createElement('div');
+      modalOverlay.id = 'newsDetailModal';
+      modalOverlay.className = 'news-modal-overlay';
+      modalOverlay.setAttribute('role', 'dialog');
+      modalOverlay.setAttribute('aria-modal', 'true');
+      modalOverlay.innerHTML = `
+        <div class="news-modal-card">
+          <button type="button" class="news-modal-close" aria-label="${isEnglish ? 'Close' : 'Chiudi'}">✕</button>
+          <div class="news-modal-gallery">
+            <div class="news-modal-stage">
+              <button type="button" class="news-gallery-arrow prev" aria-label="${isEnglish ? 'Previous photo' : 'Foto precedente'}">‹</button>
+              <img id="newsModalMainImg" src="" alt="News Photo">
+              <button type="button" class="news-gallery-arrow next" aria-label="${isEnglish ? 'Next photo' : 'Foto successiva'}">›</button>
+              <div class="news-gallery-counter" id="newsModalCounter">1 / 1</div>
+            </div>
+            <div class="news-gallery-thumbs" id="newsModalThumbs"></div>
+          </div>
+          <div class="news-modal-body">
+            <div class="news-modal-meta">
+              <span class="news-modal-cat" id="newsModalCat"></span>
+              <span class="news-modal-date" id="newsModalDate"></span>
+            </div>
+            <h3 class="news-modal-title" id="newsModalTitle"></h3>
+            <div class="news-modal-text" id="newsModalText"></div>
+            <div id="newsModalActions" style="display: flex; gap: 12px; flex-wrap: wrap;"></div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modalOverlay);
+    }
+
+    let modalPhotos = [];
+    let modalPhotoIdx = 0;
+
+    const updateModalPhoto = (idx) => {
+      if (!modalPhotos.length) return;
+      modalPhotoIdx = (idx + modalPhotos.length) % modalPhotos.length;
+      const mainImg = document.getElementById('newsModalMainImg');
+      const counter = document.getElementById('newsModalCounter');
+      const thumbsWrap = document.getElementById('newsModalThumbs');
+      const prevArrow = modalOverlay.querySelector('.news-gallery-arrow.prev');
+      const nextArrow = modalOverlay.querySelector('.news-gallery-arrow.next');
+
+      mainImg.src = modalPhotos[modalPhotoIdx];
+      mainImg.onerror = () => { mainImg.onerror = null; mainImg.src = 'assets/images/parco-giochi-scivolo.png'; };
+
+      if (modalPhotos.length > 1) {
+        counter.style.display = 'block';
+        counter.textContent = `${modalPhotoIdx + 1} / ${modalPhotos.length}`;
+        prevArrow.style.display = 'flex';
+        nextArrow.style.display = 'flex';
+        thumbsWrap.style.display = 'flex';
+        thumbsWrap.querySelectorAll('.news-gallery-thumb').forEach((t, i) => {
+          t.classList.toggle('active', i === modalPhotoIdx);
+        });
+      } else {
+        counter.style.display = 'none';
+        prevArrow.style.display = 'none';
+        nextArrow.style.display = 'none';
+        thumbsWrap.style.display = 'none';
+      }
+    };
+
+    const closeNewsModal = () => {
+      modalOverlay.classList.remove('active');
+      document.body.style.overflow = '';
+    };
+
+    const openNewsModal = (item) => {
+      const category = isEnglish ? (item.category_en || item.category_it) : (item.category_it || item.category_en);
+      const title = isEnglish ? (item.title_en || item.title_it) : (item.title_it || item.title_en);
+      const text = isEnglish ? (item.excerpt_en || item.excerpt_it) : (item.excerpt_it || item.excerpt_en);
+
+      const rawGallery = Array.isArray(item.gallery) && item.gallery.length > 0
+        ? item.gallery
+        : [item.image || 'assets/images/parco-giochi-scivolo.png'];
+      modalPhotos = rawGallery.map(resolveImg);
+
+      document.getElementById('newsModalCat').textContent = category || 'News';
+      document.getElementById('newsModalDate').textContent = item.date ? `📅 ${item.date}` : '';
+      document.getElementById('newsModalTitle').textContent = title || '';
+      document.getElementById('newsModalText').textContent = text || '';
+
+      const thumbsWrap = document.getElementById('newsModalThumbs');
+      thumbsWrap.innerHTML = modalPhotos.map((src, i) =>
+        `<img src="${src}" class="news-gallery-thumb ${i === 0 ? 'active' : ''}" data-idx="${i}" alt="Foto ${i + 1}" onerror="this.onerror=null;this.src='assets/images/parco-giochi-scivolo.png';">`
+      ).join('');
+      thumbsWrap.querySelectorAll('.news-gallery-thumb').forEach(imgEl => {
+        imgEl.addEventListener('click', () => updateModalPhoto(parseInt(imgEl.dataset.idx, 10)));
+      });
+
+      const actionsWrap = document.getElementById('newsModalActions');
+      actionsWrap.innerHTML = item.instagram_url
+        ? `<a href="${item.instagram_url}" target="_blank" rel="noopener" class="btn btn-secondary">📸 ${isEnglish ? 'View on Instagram' : 'Vedi su Instagram'}</a>`
+        : '';
+
+      updateModalPhoto(0);
+      modalOverlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    };
+
+    modalOverlay.querySelector('.news-modal-close').addEventListener('click', closeNewsModal);
+    modalOverlay.querySelector('.news-gallery-arrow.prev').addEventListener('click', () => updateModalPhoto(modalPhotoIdx - 1));
+    modalOverlay.querySelector('.news-gallery-arrow.next').addEventListener('click', () => updateModalPhoto(modalPhotoIdx + 1));
+    modalOverlay.addEventListener('click', (e) => {
+      if (e.target === modalOverlay) closeNewsModal();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (!modalOverlay.classList.contains('active')) return;
+      if (e.key === 'Escape') closeNewsModal();
+      if (e.key === 'ArrowLeft' && modalPhotos.length > 1) updateModalPhoto(modalPhotoIdx - 1);
+      if (e.key === 'ArrowRight' && modalPhotos.length > 1) updateModalPhoto(modalPhotoIdx + 1);
+    });
 
     const renderNews = (newsItems) => {
       if (!Array.isArray(newsItems) || newsItems.length === 0) {
@@ -164,30 +283,47 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       let html = '';
-      newsItems.forEach(item => {
+      newsItems.forEach((item, idx) => {
         const category = isEnglish ? (item.category_en || item.category_it) : (item.category_it || item.category_en);
         const title = isEnglish ? (item.title_en || item.title_it) : (item.title_it || item.title_en);
         const excerpt = isEnglish ? (item.excerpt_en || item.excerpt_it) : (item.excerpt_it || item.excerpt_en);
-        let rawImg = item.image || 'assets/images/parco-giochi-scivolo.png';
-        const img = validImgMap[rawImg] || rawImg;
-        const link = item.instagram_url ? `<a href="${item.instagram_url}" target="_blank" rel="noopener" class="news-ig-badge" title="Instagram Post">📸 Instagram</a>` : '';
+        const galleryCount = Array.isArray(item.gallery) && item.gallery.length > 1 ? item.gallery.length : 0;
+        const img = resolveImg(item.image || (galleryCount ? item.gallery[0] : ''));
+        const igBadge = item.instagram_url ? `<a href="${item.instagram_url}" target="_blank" rel="noopener" class="news-ig-badge" title="Instagram Post">📸 Instagram</a>` : '';
+        const photoBadge = galleryCount ? `<span class="news-photo-count">🖼️ ${galleryCount} ${isEnglish ? 'photos' : 'foto'}</span>` : '';
+        const readMoreLabel = galleryCount
+          ? (isEnglish ? `Read more & view ${galleryCount} photos →` : `Leggi tutto e vedi ${galleryCount} foto →`)
+          : (isEnglish ? 'Read more →' : 'Leggi tutto →');
 
         html += `
-          <article class="news-card" data-id="${item.id || ''}">
+          <article class="news-card" data-idx="${idx}" data-id="${item.id || ''}">
             <div class="news-thumb">
               <img src="${img}" alt="${title}" loading="lazy" onerror="this.onerror=null;this.src='assets/images/parco-giochi-scivolo.png';">
-              ${link}
+              ${igBadge}
+              ${photoBadge}
             </div>
             <div class="news-body">
-              <div class="news-meta">${category}</div>
+              <div class="news-meta">${category}${item.date ? ' • ' + item.date : ''}</div>
               <h3 class="news-title">${title}</h3>
               <p class="news-excerpt">${excerpt}</p>
+              <span class="news-read-more">${readMoreLabel}</span>
             </div>
           </article>
         `;
       });
 
       newsContainer.innerHTML = html;
+
+      // Bind click to open detail modal
+      newsContainer.querySelectorAll('.news-card').forEach(card => {
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('.news-ig-badge')) return; // Let Instagram link open directly
+          const i = parseInt(card.dataset.idx, 10);
+          if (!isNaN(i) && newsItems[i]) {
+            openNewsModal(newsItems[i]);
+          }
+        });
+      });
 
       // Se ci sono più di 3 news, attiva il carosello a scorrimento con controlli
       let carouselNav = document.querySelector('.news-carousel-nav');

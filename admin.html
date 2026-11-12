@@ -455,7 +455,7 @@
               </div>
               <div class="form-group" style="margin-bottom: 0;">
                 <label class="form-label" for="newsExcerptIt">Descrizione / Sommario *</label>
-                <textarea id="newsExcerptIt" class="form-control" rows="3" placeholder="Breve testo coinvolgente sulla giornata..." required></textarea>
+                <textarea id="newsExcerptIt" class="form-control" rows="6" placeholder="Racconta liberamente la giornata, anche su più paragrafi..." required></textarea>
               </div>
             </div>
 
@@ -472,7 +472,7 @@
               </div>
               <div class="form-group" style="margin-bottom: 0;">
                 <label class="form-label" for="newsExcerptEn">Descrizione in Inglese *</label>
-                <textarea id="newsExcerptEn" class="form-control" rows="3" placeholder="Short engaging summary in English..." required></textarea>
+                <textarea id="newsExcerptEn" class="form-control" rows="6" placeholder="Full engaging story in English..." required></textarea>
               </div>
             </div>
 
@@ -501,21 +501,23 @@
                 <input type="text" id="newsCustomImg" class="form-control" placeholder="https://... o assets/images/tua-foto.jpg" style="margin-top: 8px; display: none;">
               </div>
 
-              <!-- Opzione 2: Caricamento diretto file -->
+              <!-- Opzione 2: Caricamento multiplo foto -->
               <div id="wrapImgUpload" style="display: none;">
-                <div id="newsDropZone" style="border: 2px dashed var(--primary); border-radius: var(--radius-md); padding: 22px; text-align: center; cursor: pointer; background: #FAF7FD; transition: all 0.2s;">
+                <div id="newsDropZone" style="border: 2px dashed var(--primary); border-radius: var(--radius-md); padding: 20px; text-align: center; cursor: pointer; background: #FAF7FD; transition: all 0.2s;">
                   <span style="font-size: 2rem; display: block; margin-bottom: 6px;">📷</span>
-                  <strong style="color: var(--primary-dark); font-size: 0.95rem; display: block;">Tocca o trascina qui una foto dal tuo dispositivo</strong>
-                  <span style="font-size: 0.8rem; color: var(--admin-muted);">JPG, PNG o WEBP (ottimizzata automaticamente e caricata su GitHub)</span>
-                  <input type="file" id="newsFileInput" accept="image/*" style="display: none;">
+                  <strong style="color: var(--primary-dark); font-size: 0.95rem; display: block;">Tocca o trascina qui una o più foto (anche 6–10 insieme)</strong>
+                  <span style="font-size: 0.8rem; color: var(--admin-muted);">JPG, PNG o WEBP — vengono ottimizzate automaticamente e caricate su GitHub</span>
+                  <input type="file" id="newsFileInput" accept="image/*" multiple style="display: none;">
                 </div>
-                <div id="newsUploadPreview" style="display: none; margin-top: 10px; align-items: center; gap: 12px; background: #FFF; padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--admin-border); box-shadow: var(--shadow-sm);">
-                  <img id="newsUploadPreviewImg" src="" style="width: 70px; height: 70px; object-fit: cover; border-radius: 8px; border: 1px solid var(--admin-border);">
-                  <div style="flex: 1; overflow: hidden;">
-                    <strong id="newsUploadFileName" style="font-size: 0.88rem; display: block; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">foto.jpg</strong>
-                    <span id="newsUploadFileSize" style="font-size: 0.78rem; color: #2E7D32; font-weight: 600;">✓ Foto ottimizzata pronta</span>
+                <div id="newsUploadPreview" style="display: none; margin-top: 12px; background: #FFF; padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--admin-border);">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <strong id="newsUploadCountLabel" style="font-size: 0.85rem; color: #2E7D32;">✓ 0 foto pronte</strong>
+                    <div style="display: flex; gap: 6px;">
+                      <button type="button" id="btnAddMoreImgs" class="copy-pill-btn" style="font-size: 0.75rem;">+ Aggiungi altre foto</button>
+                      <button type="button" id="btnCancelUploadedImg" class="copy-pill-btn" style="font-size: 0.75rem; color: #D32F2F; border-color: #FFCDD2;">Svuota tutte</button>
+                    </div>
                   </div>
-                  <button type="button" id="btnCancelUploadedImg" class="copy-pill-btn" style="color: #D32F2F; border-color: #FFCDD2;">Rimuovi</button>
+                  <div id="newsUploadGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 8px;"></div>
                 </div>
               </div>
             </div>
@@ -1049,7 +1051,7 @@
           <div class="news-manage-item">
             <img src="${item.image || 'assets/images/parco-giochi-scivolo.png'}" alt="Thumb" class="news-manage-thumb" onerror="this.onerror=null;this.src='assets/images/parco-giochi-scivolo.png';">
             <div class="news-manage-info">
-              <div class="news-manage-meta">${item.category_it || 'News'} • 📅 ${item.date || ''}</div>
+              <div class="news-manage-meta">${item.category_it || 'News'} • 📅 ${item.date || ''}${Array.isArray(item.gallery) && item.gallery.length > 1 ? ' • 🖼️ ' + item.gallery.length + ' foto' : ''}</div>
               <div class="news-manage-title">${item.title_it}</div>
               <div class="news-manage-excerpt">${item.excerpt_it}</div>
               ${item.instagram_url ? `<a href="${item.instagram_url}" target="_blank" style="font-size: 0.78rem; color: #E1306C; font-weight:700;">📸 Vedi Post Instagram</a>` : ''}
@@ -1077,15 +1079,26 @@
       document.getElementById('newsExcerptEn').value = item.excerpt_en || '';
       document.getElementById('newsIgLink').value = item.instagram_url || '';
 
+      const itemGallery = Array.isArray(item.gallery) && item.gallery.length > 0
+        ? item.gallery
+        : (item.image ? [item.image] : []);
+      pendingGalleryItems = itemGallery.map(pathStr => ({ type: 'existing', path: pathStr, preview: pathStr }));
+
       const imgSelect = document.getElementById('newsImageSelect');
       const customImgInput = document.getElementById('newsCustomImg');
-      if (Array.from(imgSelect.options).some(o => o.value === item.image)) {
-        imgSelect.value = item.image;
-        customImgInput.style.display = 'none';
+      if (pendingGalleryItems.length > 1 || (pendingGalleryItems[0] && pendingGalleryItems[0].path.startsWith('assets/images/uploads/'))) {
+        tabImgUpload.click();
+        renderUploadGrid();
       } else {
-        imgSelect.value = 'custom';
-        customImgInput.style.display = 'block';
-        customImgInput.value = item.image || '';
+        tabImgPreset.click();
+        if (Array.from(imgSelect.options).some(o => o.value === item.image)) {
+          imgSelect.value = item.image;
+          customImgInput.style.display = 'none';
+        } else {
+          imgSelect.value = 'custom';
+          customImgInput.style.display = 'block';
+          customImgInput.value = item.image || '';
+        }
       }
 
       document.getElementById('formNewsHeading').textContent = "Modifica News";
@@ -1096,7 +1109,21 @@
     };
 
     window.deleteNews = async (index) => {
-      if (confirm("Vuoi davvero eliminare questa news e pubblicare l'aggiornamento online?")) {
+      const item = currentNews[index];
+      if (!item) return;
+      if (confirm(`Vuoi davvero eliminare la news "${item.title_it}" e pubblicare l'aggiornamento online?`)) {
+        const imgsToCheck = new Set();
+        if (item.image) imgsToCheck.add(item.image);
+        if (Array.isArray(item.gallery)) item.gallery.forEach(g => imgsToCheck.add(g));
+        const uploadedImgs = Array.from(imgsToCheck).filter(p => p && p.startsWith('assets/images/uploads/'));
+
+        if (uploadedImgs.length > 0) {
+          showToast(`Rimozione di ${uploadedImgs.length} foto dal repository...`, "info", "🗑️");
+          for (const imgPath of uploadedImgs) {
+            await deleteUploadedImageFromGitHub(imgPath);
+          }
+        }
+
         currentNews.splice(index, 1);
         renderNewsList();
         await publishToGitHub(currentNews);
@@ -1109,6 +1136,8 @@
       document.getElementById('formNewsHeading').textContent = "Aggiungi Nuova News";
       document.getElementById('saveBtnText').textContent = "💾 Salva & Pubblica News";
       document.getElementById('btnCancelEdit').style.display = 'none';
+      pendingGalleryItems = [];
+      renderUploadGrid();
     });
 
     document.getElementById('newsImageSelect').addEventListener('change', (e) => {
@@ -1124,22 +1153,28 @@
       const catIt = catParts[0];
       const catEn = catParts[1] || catParts[0];
 
-      let imageVal = 'assets/images/parco-giochi-scivolo.png';
+      let finalGallery = [];
 
-      // Verifica se l'utente ha caricato una nuova foto
-      if (wrapImgUpload.style.display !== 'none' && pendingUploadedImage) {
-        showToast("Caricamento foto su GitHub in corso...", "info", "⏳");
-        const uploadedPath = await uploadImageToGitHub(pendingUploadedImage.name, pendingUploadedImage.base64);
-        if (uploadedPath) {
-          imageVal = uploadedPath;
-          showToast("Foto caricata con successo su GitHub!", "success", "✅");
-        } else {
-          // Fallback su dataUrl se offline o token mancante
-          imageVal = pendingUploadedImage.dataUrl;
+      if (wrapImgUpload.style.display !== 'none' && pendingGalleryItems.length > 0) {
+        const newFiles = pendingGalleryItems.filter(it => it.type === 'new');
+        if (newFiles.length > 0) {
+          showToast(`Caricamento di ${newFiles.length} foto su GitHub...`, "info", "⏳");
+        }
+        for (const item of pendingGalleryItems) {
+          if (item.type === 'existing') {
+            finalGallery.push(item.path);
+          } else if (item.type === 'new') {
+            const uploadedPath = await uploadImageToGitHub(item.name, item.base64);
+            finalGallery.push(uploadedPath || item.dataUrl);
+          }
+        }
+        if (newFiles.length > 0) {
+          showToast("Foto caricate con successo su GitHub!", "success", "✅");
         }
       } else {
         const imgSelect = document.getElementById('newsImageSelect').value;
-        imageVal = imgSelect === 'custom' ? document.getElementById('newsCustomImg').value.trim() : imgSelect;
+        const singleImg = imgSelect === 'custom' ? document.getElementById('newsCustomImg').value.trim() : imgSelect;
+        finalGallery = [singleImg || 'assets/images/parco-giochi-scivolo.png'];
       }
 
       const newItem = {
@@ -1151,7 +1186,8 @@
         title_en: document.getElementById('newsTitleEn').value.trim(),
         excerpt_it: document.getElementById('newsExcerptIt').value.trim(),
         excerpt_en: document.getElementById('newsExcerptEn').value.trim(),
-        image: imageVal || 'assets/images/parco-giochi-scivolo.png',
+        image: finalGallery[0] || 'assets/images/parco-giochi-scivolo.png',
+        gallery: finalGallery,
         instagram_url: document.getElementById('newsIgLink').value.trim()
       };
 
@@ -1173,6 +1209,8 @@
       document.getElementById('formNewsHeading').textContent = "Aggiungi Nuova News";
       document.getElementById('saveBtnText').textContent = "💾 Salva & Pubblica News";
       document.getElementById('btnCancelEdit').style.display = 'none';
+      pendingGalleryItems = [];
+      renderUploadGrid();
     });
 
     // Header Quick Publish Button
@@ -1233,8 +1271,8 @@
       }
     });
 
-    // --- 6.2 Image Uploader & Client-Side Compressor ---
-    let pendingUploadedImage = null; // { name, base64, dataUrl }
+    // --- 6.2 Multi-Image Uploader & Client-Side Compressor ---
+    let pendingGalleryItems = []; // [{ type: 'new'|'existing', name?, base64?, dataUrl?, path?, preview }]
 
     const compressImage = (file, maxWidth = 1200, quality = 0.82) => {
       return new Promise((resolve, reject) => {
@@ -1293,10 +1331,61 @@
     const newsDropZone = document.getElementById('newsDropZone');
     const newsFileInput = document.getElementById('newsFileInput');
     const newsUploadPreview = document.getElementById('newsUploadPreview');
-    const newsUploadPreviewImg = document.getElementById('newsUploadPreviewImg');
-    const newsUploadFileName = document.getElementById('newsUploadFileName');
-    const newsUploadFileSize = document.getElementById('newsUploadFileSize');
+    const newsUploadGrid = document.getElementById('newsUploadGrid');
+    const newsUploadCountLabel = document.getElementById('newsUploadCountLabel');
+    const btnAddMoreImgs = document.getElementById('btnAddMoreImgs');
     const btnCancelUploadedImg = document.getElementById('btnCancelUploadedImg');
+
+    const renderUploadGrid = () => {
+      if (!newsUploadPreview || !newsUploadGrid) return;
+      if (pendingGalleryItems.length === 0) {
+        newsDropZone.style.display = 'block';
+        newsUploadPreview.style.display = 'none';
+        newsUploadGrid.innerHTML = '';
+        return;
+      }
+      newsDropZone.style.display = 'none';
+      newsUploadPreview.style.display = 'block';
+      newsUploadCountLabel.textContent = `✓ ${pendingGalleryItems.length} ${pendingGalleryItems.length === 1 ? 'foto pronta' : 'foto pronte (la 1ª è la copertina)'}`;
+      newsUploadGrid.innerHTML = pendingGalleryItems.map((it, idx) => `
+        <div style="position: relative; border-radius: 8px; overflow: hidden; border: ${idx === 0 ? '2px solid var(--primary)' : '1px solid var(--admin-border)'}; aspect-ratio: 1;">
+          <img src="${it.preview}" style="width: 100%; height: 100%; object-fit: cover;">
+          ${idx === 0 ? '<span style="position:absolute;bottom:2px;left:2px;background:var(--primary);color:#fff;font-size:0.62rem;padding:1px 5px;border-radius:4px;font-weight:700;">Copertina</span>' : ''}
+          <button type="button" onclick="removeGalleryItem(${idx})" style="position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;border:none;background:rgba(211,47,47,0.9);color:#fff;font-size:0.7rem;font-weight:800;cursor:pointer;line-height:1;">✕</button>
+        </div>
+      `).join('');
+    };
+
+    window.removeGalleryItem = (idx) => {
+      pendingGalleryItems.splice(idx, 1);
+      renderUploadGrid();
+    };
+
+    const handleFilesSelect = async (fileList) => {
+      const files = Array.from(fileList).filter(f => f.type.startsWith('image/'));
+      if (files.length === 0) {
+        alert('Seleziona almeno un file immagine valido (JPG, PNG o WEBP).');
+        return;
+      }
+      showToast(`Ottimizzazione di ${files.length} foto in corso...`, "info", "⏳");
+      try {
+        for (const file of files) {
+          const { dataUrl, base64 } = await compressImage(file);
+          const cleanName = file.name.toLowerCase().replace(/[^a-z0-9.]/g, '-');
+          pendingGalleryItems.push({
+            type: 'new',
+            name: cleanName,
+            base64: base64,
+            dataUrl: dataUrl,
+            preview: dataUrl
+          });
+        }
+        renderUploadGrid();
+        showToast(`${files.length} foto pronte per la pubblicazione!`, "success", "📸");
+      } catch (err) {
+        alert("Errore nell'elaborazione delle immagini.");
+      }
+    };
 
     if (newsDropZone && newsFileInput) {
       newsDropZone.addEventListener('click', () => newsFileInput.click());
@@ -1305,49 +1394,27 @@
       newsDropZone.addEventListener('drop', (e) => {
         e.preventDefault();
         newsDropZone.style.background = '#FAF7FD';
-        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-          handleFileSelect(e.dataTransfer.files[0]);
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+          handleFilesSelect(e.dataTransfer.files);
         }
       });
-
       newsFileInput.addEventListener('change', (e) => {
-        if (e.target.files && e.target.files[0]) {
-          handleFileSelect(e.target.files[0]);
+        if (e.target.files && e.target.files.length > 0) {
+          handleFilesSelect(e.target.files);
+          newsFileInput.value = '';
         }
       });
     }
 
-    const handleFileSelect = async (file) => {
-      if (!file.type.startsWith('image/')) {
-        alert('Seleziona un file immagine valido (JPG, PNG o WEBP).');
-        return;
-      }
-      showToast("Elaborazione e ottimizzazione foto...", "info", "⏳");
-      try {
-        const { dataUrl, base64 } = await compressImage(file);
-        const cleanName = file.name.toLowerCase().replace(/[^a-z0-9.]/g, '-');
-        pendingUploadedImage = {
-          name: cleanName,
-          base64: base64,
-          dataUrl: dataUrl
-        };
-        newsUploadPreviewImg.src = dataUrl;
-        newsUploadFileName.textContent = cleanName;
-        newsUploadFileSize.textContent = "Ottimizzata (~" + Math.round(base64.length * 0.75 / 1024) + " KB) • Pronta!";
-        newsDropZone.style.display = 'none';
-        newsUploadPreview.style.display = 'flex';
-        showToast("Foto pronta per essere pubblicata!", "success", "📸");
-      } catch (err) {
-        alert("Errore nell'elaborazione dell'immagine.");
-      }
-    };
+    if (btnAddMoreImgs && newsFileInput) {
+      btnAddMoreImgs.addEventListener('click', () => newsFileInput.click());
+    }
 
     if (btnCancelUploadedImg) {
       btnCancelUploadedImg.addEventListener('click', () => {
-        pendingUploadedImage = null;
-        newsFileInput.value = '';
-        newsDropZone.style.display = 'block';
-        newsUploadPreview.style.display = 'none';
+        pendingGalleryItems = [];
+        if (newsFileInput) newsFileInput.value = '';
+        renderUploadGrid();
       });
     }
 
@@ -1363,7 +1430,7 @@
           const { dataUrl, base64 } = await compressImage(e.target.files[0]);
           igPreviewImg.src = dataUrl;
           const cleanName = e.target.files[0].name.toLowerCase().replace(/[^a-z0-9.]/g, '-');
-          pendingUploadedImage = { name: cleanName, base64, dataUrl };
+          pendingGalleryItems = [{ type: 'new', name: cleanName, base64, dataUrl, preview: dataUrl }];
           showToast("Foto post Instagram aggiornata!", "success", "✨");
         }
       });
