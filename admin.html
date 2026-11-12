@@ -1588,20 +1588,38 @@
     const callGemini = async (promptText) => {
       const key = getGeminiKey();
       if (!key) return null;
-      const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=' + encodeURIComponent(key);
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: promptText }] }]
-        })
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error?.message || 'Errore API Gemini (' + res.status + ')');
+      const models = ['gemini-3.8-flash', 'gemini-2.5-flash-lite', 'gemini-3.8-flash-lite', 'gemini-2.0-flash'];
+      let lastErrMsg = 'Servizio AI temporaneamente occupato.';
+
+      for (const model of models) {
+        try {
+          const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + encodeURIComponent(key);
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: promptText }] }]
+            })
+          });
+          if (res.ok) {
+            const data = await res.json();
+            const txt = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (txt) return txt;
+          } else {
+            const err = await res.json().catch(() => ({}));
+            lastErrMsg = err.error?.message || ('Errore API Gemini (' + res.status + ')');
+            // Se sovraccarico (429/503) o modello non disponibile (404), passa subito al modello successivo
+            if (res.status === 429 || res.status === 503 || res.status === 404) {
+              console.warn(`Modello ${model} non disponibile (${res.status}), provo il fallback...`);
+              continue;
+            }
+            throw new Error(lastErrMsg);
+          }
+        } catch (err) {
+          lastErrMsg = err.message;
+        }
       }
-      const data = await res.json();
-      return data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      throw new Error(lastErrMsg);
     };
 
     const localTextCleanup = (text) => {
