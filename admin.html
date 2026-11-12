@@ -509,17 +509,17 @@
               <!-- Opzione 2: Caricamento multiplo foto -->
               <div id="wrapImgUpload" style="display: none;">
                 <div id="newsDropZone" style="border: 2px dashed var(--primary); border-radius: var(--radius-md); padding: 20px; text-align: center; cursor: pointer; background: #FAF7FD; transition: all 0.2s;">
-                  <span style="font-size: 2rem; display: block; margin-bottom: 6px;">📷</span>
-                  <strong style="color: var(--primary-dark); font-size: 0.95rem; display: block;">Tocca o trascina qui una o più foto (anche 6–10 insieme)</strong>
-                  <span style="font-size: 0.8rem; color: var(--admin-muted);">JPG, PNG o WEBP — vengono ottimizzate automaticamente e caricate su GitHub</span>
-                  <input type="file" id="newsFileInput" accept="image/*" multiple style="display: none;">
+                  <span style="font-size: 2rem; display: block; margin-bottom: 6px;">📷 🎬</span>
+                  <strong style="color: var(--primary-dark); font-size: 0.95rem; display: block;">Tocca o trascina qui foto o brevi video</strong>
+                  <span style="font-size: 0.8rem; color: var(--admin-muted);">Foto (JPG/PNG/WEBP, ottimizzate) o Video brevi (MP4/WEBM, max 20 MB) caricati su GitHub</span>
+                  <input type="file" id="newsFileInput" accept="image/*,video/mp4,video/webm,video/quicktime" multiple style="display: none;">
                 </div>
                 <div id="newsUploadPreview" style="display: none; margin-top: 12px; background: #FFF; padding: 12px; border-radius: var(--radius-md); border: 1px solid var(--admin-border);">
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <strong id="newsUploadCountLabel" style="font-size: 0.85rem; color: #2E7D32;">✓ 0 foto pronte</strong>
+                    <strong id="newsUploadCountLabel" style="font-size: 0.85rem; color: #2E7D32;">✓ 0 file pronti</strong>
                     <div style="display: flex; gap: 6px;">
-                      <button type="button" id="btnAddMoreImgs" class="copy-pill-btn" style="font-size: 0.75rem;">+ Aggiungi altre foto</button>
-                      <button type="button" id="btnCancelUploadedImg" class="copy-pill-btn" style="font-size: 0.75rem; color: #D32F2F; border-color: #FFCDD2;">Svuota tutte</button>
+                      <button type="button" id="btnAddMoreImgs" class="copy-pill-btn" style="font-size: 0.75rem;">+ Aggiungi foto/video</button>
+                      <button type="button" id="btnCancelUploadedImg" class="copy-pill-btn" style="font-size: 0.75rem; color: #D32F2F; border-color: #FFCDD2;">Svuota tutti</button>
                     </div>
                   </div>
                   <div id="newsUploadGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 8px;"></div>
@@ -724,7 +724,7 @@
               <span style="font-size: 1.8rem;">📱</span>
               <div>
                 <strong>Profilo verificato:</strong> @scuoladeisogniroma<br>
-                <span style="font-size: 0.85rem; color: #507A63;">Oltre 74 post e 340 famiglie collegate</span>
+                <span style="font-size: 0.85rem; color: #507A63;">Banner e link diretti attivi sul sito ufficiale</span>
               </div>
             </div>
           </div>
@@ -1079,13 +1079,18 @@
         return;
       }
 
+      const isVideoFile = (src) => /\.(mp4|webm|mov|m4v)(\?.*)?$/i.test(src || '');
       let html = '';
       currentNews.forEach((item, index) => {
+        const thumbMedia = isVideoFile(item.image)
+          ? `<video src="${item.image}#t=0.5" muted playsinline preload="metadata" class="news-manage-thumb" style="object-fit: cover;"></video>`
+          : `<img src="${item.image || 'assets/images/parco-giochi-scivolo.png'}" alt="Thumb" class="news-manage-thumb" onerror="this.onerror=null;this.src='assets/images/parco-giochi-scivolo.png';">`;
+        const mediaBadge = isVideoFile(item.image) ? ' • 🎬 Video' : '';
         html += `
           <div class="news-manage-item">
-            <img src="${item.image || 'assets/images/parco-giochi-scivolo.png'}" alt="Thumb" class="news-manage-thumb" onerror="this.onerror=null;this.src='assets/images/parco-giochi-scivolo.png';">
+            ${thumbMedia}
             <div class="news-manage-info">
-              <div class="news-manage-meta">${item.category_it || 'News'} • 📅 ${item.date || ''}${Array.isArray(item.gallery) && item.gallery.length > 1 ? ' • 🖼️ ' + item.gallery.length + ' foto' : ''}</div>
+              <div class="news-manage-meta">${item.category_it || 'News'} • 📅 ${item.date || ''}${mediaBadge}${Array.isArray(item.gallery) && item.gallery.length > 1 ? ' • 🖼️ ' + item.gallery.length + ' file' : ''}</div>
               <div class="news-manage-title">${item.title_it}</div>
               <div class="news-manage-excerpt">${item.excerpt_it}</div>
               ${item.instagram_url ? `<a href="${item.instagram_url}" target="_blank" style="font-size: 0.78rem; color: #E1306C; font-weight:700;">📸 Vedi Post Instagram</a>` : ''}
@@ -1116,11 +1121,16 @@
       const itemGallery = Array.isArray(item.gallery) && item.gallery.length > 0
         ? item.gallery
         : (item.image ? [item.image] : []);
-      pendingGalleryItems = itemGallery.map(pathStr => ({ type: 'existing', path: pathStr, preview: pathStr }));
+      pendingGalleryItems = itemGallery.map(pathStr => ({
+        type: 'existing',
+        mediaType: /\.(mp4|webm|mov|m4v)(\?.*)?$/i.test(pathStr) ? 'video' : 'image',
+        path: pathStr,
+        preview: pathStr
+      }));
 
       const imgSelect = document.getElementById('newsImageSelect');
       const customImgInput = document.getElementById('newsCustomImg');
-      if (pendingGalleryItems.length > 1 || (pendingGalleryItems[0] && pendingGalleryItems[0].path.startsWith('assets/images/uploads/'))) {
+      if (pendingGalleryItems.length > 1 || (pendingGalleryItems[0] && (pendingGalleryItems[0].path.startsWith('assets/images/uploads/') || pendingGalleryItems[0].path.startsWith('assets/videos/uploads/')))) {
         tabImgUpload.click();
         renderUploadGrid();
       } else {
@@ -1149,7 +1159,7 @@
         const imgsToCheck = new Set();
         if (item.image) imgsToCheck.add(item.image);
         if (Array.isArray(item.gallery)) item.gallery.forEach(g => imgsToCheck.add(g));
-        const uploadedImgs = Array.from(imgsToCheck).filter(p => p && p.startsWith('assets/images/uploads/'));
+        const uploadedImgs = Array.from(imgsToCheck).filter(p => p && (p.startsWith('assets/images/uploads/') || p.startsWith('assets/videos/uploads/')));
 
         if (uploadedImgs.length > 0) {
           showToast(`Rimozione di ${uploadedImgs.length} foto dal repository...`, "info", "🗑️");
@@ -1198,12 +1208,12 @@
           if (item.type === 'existing') {
             finalGallery.push(item.path);
           } else if (item.type === 'new') {
-            const uploadedPath = await uploadImageToGitHub(item.name, item.base64);
+            const uploadedPath = await uploadImageToGitHub(item.name, item.base64, item.mediaType === 'video');
             finalGallery.push(uploadedPath || item.dataUrl);
           }
         }
         if (newFiles.length > 0) {
-          showToast("Foto caricate con successo su GitHub!", "success", "✅");
+          showToast("File caricati con successo su GitHub!", "success", "✅");
         }
       } else {
         const imgSelect = document.getElementById('newsImageSelect').value;
@@ -1428,14 +1438,20 @@
       }
       newsDropZone.style.display = 'none';
       newsUploadPreview.style.display = 'block';
-      newsUploadCountLabel.textContent = `✓ ${pendingGalleryItems.length} ${pendingGalleryItems.length === 1 ? 'foto pronta' : 'foto pronte (la 1ª è la copertina)'}`;
-      newsUploadGrid.innerHTML = pendingGalleryItems.map((it, idx) => `
+      newsUploadCountLabel.textContent = `✓ ${pendingGalleryItems.length} ${pendingGalleryItems.length === 1 ? 'file pronto' : 'file pronti (il 1° è la copertina)'}`;
+      newsUploadGrid.innerHTML = pendingGalleryItems.map((it, idx) => {
+        const isVid = it.mediaType === 'video' || /\.(mp4|webm|mov|m4v)(\?.*)?$/i.test(it.path || it.name || '');
+        const mediaEl = isVid
+          ? `<video src="${it.preview}#t=0.5" muted playsinline preload="metadata" style="width: 100%; height: 100%; object-fit: cover;"></video><span style="position:absolute;top:2px;left:2px;background:rgba(0,0,0,0.65);color:#fff;font-size:0.62rem;padding:1px 4px;border-radius:4px;">🎬</span>`
+          : `<img src="${it.preview}" style="width: 100%; height: 100%; object-fit: cover;">`;
+        return `
         <div style="position: relative; border-radius: 8px; overflow: hidden; border: ${idx === 0 ? '2px solid var(--primary)' : '1px solid var(--admin-border)'}; aspect-ratio: 1;">
-          <img src="${it.preview}" style="width: 100%; height: 100%; object-fit: cover;">
+          ${mediaEl}
           ${idx === 0 ? '<span style="position:absolute;bottom:2px;left:2px;background:var(--primary);color:#fff;font-size:0.62rem;padding:1px 5px;border-radius:4px;font-weight:700;">Copertina</span>' : ''}
           <button type="button" onclick="removeGalleryItem(${idx})" style="position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;border:none;background:rgba(211,47,47,0.9);color:#fff;font-size:0.7rem;font-weight:800;cursor:pointer;line-height:1;">✕</button>
         </div>
-      `).join('');
+      `;
+      }).join('');
     };
 
     window.removeGalleryItem = (idx) => {
@@ -1443,29 +1459,56 @@
       renderUploadGrid();
     };
 
+    const readFileAsBase64 = (file) => new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const dataUrl = e.target.result;
+        resolve({ dataUrl, base64: dataUrl.split(',')[1] });
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+
     const handleFilesSelect = async (fileList) => {
-      const files = Array.from(fileList).filter(f => f.type.startsWith('image/'));
+      const files = Array.from(fileList).filter(f => f.type.startsWith('image/') || f.type.startsWith('video/'));
       if (files.length === 0) {
-        alert('Seleziona almeno un file immagine valido (JPG, PNG o WEBP).');
+        alert('Seleziona almeno un file immagine (JPG, PNG, WEBP) o video breve (MP4, WEBM).');
         return;
       }
-      showToast(`Ottimizzazione di ${files.length} foto in corso...`, "info", "⏳");
+      showToast(`Elaborazione di ${files.length} file in corso...`, "info", "⏳");
       try {
         for (const file of files) {
-          const { dataUrl, base64 } = await compressImage(file);
           const cleanName = file.name.toLowerCase().replace(/[^a-z0-9.]/g, '-');
-          pendingGalleryItems.push({
-            type: 'new',
-            name: cleanName,
-            base64: base64,
-            dataUrl: dataUrl,
-            preview: dataUrl
-          });
+          if (file.type.startsWith('video/')) {
+            if (file.size > 20 * 1024 * 1024) {
+              alert(`Il video "${file.name}" supera i 20 MB (${(file.size / (1024 * 1024)).toFixed(1)} MB). Comprimilo leggermente prima di caricarlo su GitHub.`);
+              continue;
+            }
+            const { dataUrl, base64 } = await readFileAsBase64(file);
+            pendingGalleryItems.push({
+              type: 'new',
+              mediaType: 'video',
+              name: cleanName,
+              base64,
+              dataUrl,
+              preview: dataUrl
+            });
+          } else {
+            const { dataUrl, base64 } = await compressImage(file);
+            pendingGalleryItems.push({
+              type: 'new',
+              mediaType: 'image',
+              name: cleanName,
+              base64,
+              dataUrl,
+              preview: dataUrl
+            });
+          }
         }
         renderUploadGrid();
-        showToast(`${files.length} foto pronte per la pubblicazione!`, "success", "📸");
+        showToast(`${pendingGalleryItems.length} file pronti per la pubblicazione!`, "success", "📸");
       } catch (err) {
-        alert("Errore nell'elaborazione delle immagini.");
+        alert("Errore nell'elaborazione dei file.");
       }
     };
 
@@ -1518,11 +1561,12 @@
       });
     }
 
-    // Helper: Upload binary image to GitHub assets/images/uploads/
-    const uploadImageToGitHub = async (filename, base64Data) => {
+    // Helper: Upload binary image or short video to GitHub
+    const uploadImageToGitHub = async (filename, base64Data, isVideo = false) => {
       const token = getStoredToken();
       if (!token) return null;
-      const cleanPath = 'assets/images/uploads/' + Date.now() + '-' + filename;
+      const folder = isVideo ? 'assets/videos/uploads/' : 'assets/images/uploads/';
+      const cleanPath = folder + Date.now() + '-' + filename;
       try {
         const res = await fetch('https://api.github.com/repos/' + GITHUB_REPO + '/contents/' + cleanPath, {
           method: 'PUT',
@@ -1532,7 +1576,7 @@
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            message: 'Upload immagine news: ' + filename,
+            message: 'Upload media news: ' + filename,
             content: base64Data,
             branch: GITHUB_BRANCH
           })
@@ -1541,14 +1585,14 @@
           return cleanPath;
         }
       } catch (err) {
-        console.error('Error uploading image to GitHub:', err);
+        console.error('Error uploading media to GitHub:', err);
       }
       return null;
     };
 
-    // Helper: Safely delete user-uploaded news image from GitHub (leaves structural images untouched)
+    // Helper: Safely delete user-uploaded news image/video from GitHub (leaves structural images untouched)
     const deleteUploadedImageFromGitHub = async (imagePath) => {
-      if (!imagePath || !imagePath.startsWith('assets/images/uploads/')) {
+      if (!imagePath || (!imagePath.startsWith('assets/images/uploads/') && !imagePath.startsWith('assets/videos/uploads/'))) {
         return; // Non tocca mai le foto strutturali (villa, parco, scivolo, ecc.)
       }
       const token = getStoredToken();

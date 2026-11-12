@@ -154,6 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const resolveImg = (raw) => validImgMap[raw] || raw || 'assets/images/parco-giochi-scivolo.png';
+    const isVideoPath = (src) => /\.(mp4|webm|mov|m4v)(\?.*)?$/i.test(src || '');
 
     // Inject News Detail & Gallery Modal once
     let modalOverlay = document.getElementById('newsDetailModal');
@@ -168,9 +169,10 @@ document.addEventListener('DOMContentLoaded', () => {
           <button type="button" class="news-modal-close" aria-label="${isEnglish ? 'Close' : 'Chiudi'}">✕</button>
           <div class="news-modal-gallery">
             <div class="news-modal-stage">
-              <button type="button" class="news-gallery-arrow prev" aria-label="${isEnglish ? 'Previous photo' : 'Foto precedente'}">‹</button>
+              <button type="button" class="news-gallery-arrow prev" aria-label="${isEnglish ? 'Previous photo' : 'Media precedente'}">‹</button>
               <img id="newsModalMainImg" src="" alt="News Photo">
-              <button type="button" class="news-gallery-arrow next" aria-label="${isEnglish ? 'Next photo' : 'Foto successiva'}">›</button>
+              <video id="newsModalMainVideo" controls playsinline preload="metadata" style="display: none;"></video>
+              <button type="button" class="news-gallery-arrow next" aria-label="${isEnglish ? 'Next photo' : 'Media successivo'}">›</button>
               <div class="news-gallery-counter" id="newsModalCounter">1 / 1</div>
             </div>
             <div class="news-gallery-thumbs" id="newsModalThumbs"></div>
@@ -196,13 +198,32 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!modalPhotos.length) return;
       modalPhotoIdx = (idx + modalPhotos.length) % modalPhotos.length;
       const mainImg = document.getElementById('newsModalMainImg');
+      const mainVideo = document.getElementById('newsModalMainVideo');
       const counter = document.getElementById('newsModalCounter');
       const thumbsWrap = document.getElementById('newsModalThumbs');
       const prevArrow = modalOverlay.querySelector('.news-gallery-arrow.prev');
       const nextArrow = modalOverlay.querySelector('.news-gallery-arrow.next');
+      const currentSrc = modalPhotos[modalPhotoIdx];
 
-      mainImg.src = modalPhotos[modalPhotoIdx];
-      mainImg.onerror = () => { mainImg.onerror = null; mainImg.src = 'assets/images/parco-giochi-scivolo.png'; };
+      if (mainVideo) {
+        mainVideo.pause();
+      }
+
+      if (isVideoPath(currentSrc) && mainVideo) {
+        mainImg.style.display = 'none';
+        mainVideo.style.display = 'block';
+        if (mainVideo.getAttribute('src') !== currentSrc) {
+          mainVideo.src = currentSrc;
+        }
+      } else {
+        if (mainVideo) {
+          mainVideo.style.display = 'none';
+          mainVideo.removeAttribute('src');
+        }
+        mainImg.style.display = 'block';
+        mainImg.src = currentSrc;
+        mainImg.onerror = () => { mainImg.onerror = null; mainImg.src = 'assets/images/parco-giochi-scivolo.png'; };
+      }
 
       if (modalPhotos.length > 1) {
         counter.style.display = 'block';
@@ -222,6 +243,11 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const closeNewsModal = () => {
+      const mainVideo = document.getElementById('newsModalMainVideo');
+      if (mainVideo) {
+        mainVideo.pause();
+        mainVideo.removeAttribute('src');
+      }
       modalOverlay.classList.remove('active');
       document.body.style.overflow = '';
     };
@@ -242,9 +268,12 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('newsModalText').textContent = text || '';
 
       const thumbsWrap = document.getElementById('newsModalThumbs');
-      thumbsWrap.innerHTML = modalPhotos.map((src, i) =>
-        `<img src="${src}" class="news-gallery-thumb ${i === 0 ? 'active' : ''}" data-idx="${i}" alt="Foto ${i + 1}" onerror="this.onerror=null;this.src='assets/images/parco-giochi-scivolo.png';">`
-      ).join('');
+      thumbsWrap.innerHTML = modalPhotos.map((src, i) => {
+        if (isVideoPath(src)) {
+          return `<video src="${src}#t=0.5" muted playsinline preload="metadata" class="news-gallery-thumb ${i === 0 ? 'active' : ''}" data-idx="${i}" title="Video ${i + 1}"></video>`;
+        }
+        return `<img src="${src}" class="news-gallery-thumb ${i === 0 ? 'active' : ''}" data-idx="${i}" alt="Foto ${i + 1}" onerror="this.onerror=null;this.src='assets/images/parco-giochi-scivolo.png';">`;
+      }).join('');
       thumbsWrap.querySelectorAll('.news-gallery-thumb').forEach(imgEl => {
         imgEl.addEventListener('click', () => updateModalPhoto(parseInt(imgEl.dataset.idx, 10)));
       });
@@ -289,18 +318,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const excerpt = isEnglish ? (item.excerpt_en || item.excerpt_it) : (item.excerpt_it || item.excerpt_en);
         const galleryCount = Array.isArray(item.gallery) && item.gallery.length > 1 ? item.gallery.length : 0;
         const img = resolveImg(item.image || (galleryCount ? item.gallery[0] : ''));
+        const hasVideo = isVideoPath(img) || (Array.isArray(item.gallery) && item.gallery.some(isVideoPath));
         const igBadge = item.instagram_url ? `<a href="${item.instagram_url}" target="_blank" rel="noopener" class="news-ig-badge" title="Instagram Post">📸 Instagram</a>` : '';
-        const photoBadge = galleryCount ? `<span class="news-photo-count">🖼️ ${galleryCount} ${isEnglish ? 'photos' : 'foto'}</span>` : '';
-        const readMoreLabel = galleryCount
-          ? (isEnglish ? `Read more & view ${galleryCount} photos →` : `Leggi tutto e vedi ${galleryCount} foto →`)
-          : (isEnglish ? 'Read more →' : 'Leggi tutto →');
+        const mediaBadge = hasVideo && !galleryCount
+          ? `<span class="news-photo-count">🎬 Video</span>`
+          : (galleryCount ? `<span class="news-photo-count">${hasVideo ? '🎬' : '🖼️'} ${galleryCount} ${isEnglish ? 'media' : 'contenuti'}</span>` : '');
+        const readMoreLabel = hasVideo && !galleryCount
+          ? (isEnglish ? 'Watch video & read more →' : 'Guarda il video e leggi tutto →')
+          : (galleryCount
+            ? (isEnglish ? `Read more & view ${galleryCount} items →` : `Leggi tutto e vedi ${galleryCount} foto →`)
+            : (isEnglish ? 'Read more →' : 'Leggi tutto →'));
+
+        const thumbHtml = isVideoPath(img)
+          ? `<video src="${img}#t=0.5" muted playsinline preload="metadata"></video>`
+          : `<img src="${img}" alt="${title}" loading="lazy" onerror="this.onerror=null;this.src='assets/images/parco-giochi-scivolo.png';">`;
 
         html += `
           <article class="news-card" data-idx="${idx}" data-id="${item.id || ''}">
             <div class="news-thumb">
-              <img src="${img}" alt="${title}" loading="lazy" onerror="this.onerror=null;this.src='assets/images/parco-giochi-scivolo.png';">
+              ${thumbHtml}
               ${igBadge}
-              ${photoBadge}
+              ${mediaBadge}
             </div>
             <div class="news-body">
               <div class="news-meta">${category}${item.date ? ' • ' + item.date : ''}</div>
