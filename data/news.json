@@ -1,5 +1,27 @@
 [
   {
+    "id": "news-1794492264925",
+    "date": "2026-11-04",
+    "category_it": "Progetto Educativo",
+    "category_en": "Educational Project",
+    "title_it": "La pittura in autunno!",
+    "title_en": "Painting in the fall!",
+    "excerpt_it": "🍂🍁Piccole mani, grandi capolavori 🎨\nOggi abbiamo dipinto in verticale, su una pellicola trasparente come una finestra magica. Colori che scivolano, sguardi che si incrociano, risate dietro la pellicola.\nAl nido l'arte è così: gioco, scoperta e meraviglia. ✨🍁🍂",
+    "excerpt_en": "🍂🍁Small hands, big masterpieces 🎨\nToday, we painted vertically on a transparent film like a magic window. Colors that glide, eyes that meet, laughter behind the film.\nAt the daycare center, art is like this: play, discovery, and wonder. ✨🍁🍂",
+    "image": "assets/images/uploads/1794492251240-whatsapp-image-2026-11-12-at-13.45.28.jpeg",
+    "gallery": [
+      "assets/images/uploads/1794492251240-whatsapp-image-2026-11-12-at-13.45.28.jpeg",
+      "assets/images/uploads/1794492253640-whatsapp-image-2026-11-12-at-13.45.29--1-.jpeg",
+      "assets/images/uploads/1794492255164-whatsapp-image-2026-11-12-at-13.45.29--2-.jpeg",
+      "assets/images/uploads/1794492256843-whatsapp-image-2026-11-12-at-13.45.29.jpeg",
+      "assets/images/uploads/1794492258190-whatsapp-image-2026-11-12-at-13.45.30--1-.jpeg",
+      "assets/images/uploads/1794492259778-whatsapp-image-2026-11-12-at-13.45.30--2-.jpeg",
+      "assets/images/uploads/1794492261332-whatsapp-image-2026-11-12-at-13.45.30--3-.jpeg",
+      "assets/images/uploads/1794492263053-whatsapp-image-2026-11-12-at-13.45.30.jpeg"
+    ],
+    "instagram_url": ""
+  },
+  {
     "id": "pet-therapy-girasoli-2026",
     "date": "2026-11-12",
     "category_it": "Progetto Educativo",
