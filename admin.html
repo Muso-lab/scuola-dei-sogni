@@ -454,6 +454,7 @@
                   ✨ Correggi & Migliora con AI
                 </button>
               </div>
+              <div id="aiPolishStatus" style="display: none; font-size: 0.78rem; padding: 8px 10px; border-radius: 8px; margin-bottom: 10px; background: #FFF; border: 1px solid #E5D9F2; color: var(--primary-dark); line-height: 1.4;"></div>
               <div class="form-group">
                 <label class="form-label" for="newsTitleIt">Titolo in Italiano *</label>
                 <input type="text" id="newsTitleIt" class="form-control" placeholder="Es. Visita della Polizia Stradale al parco" required>
@@ -1288,8 +1289,8 @@
       if (typeof getGeminiKey === 'function' && getGeminiKey()) {
         try {
           const prompt = `Traduci in inglese naturale, caldo e curato questo testo per il sito di un asilo nido e scuola dell'infanzia bilingue. Mantieni eventuali emoji e la suddivisione in paragrafi. Rispondi SOLO con il testo tradotto, senza commenti o virgolette.\n\n${clean}`;
-          const aiTrans = await callGemini(prompt);
-          if (aiTrans && aiTrans.trim()) return aiTrans.trim();
+          const aiRes = await callGemini(prompt);
+          if (aiRes && aiRes.text && aiRes.text.trim()) return aiRes.text.trim();
         } catch (err) {
           console.warn('Gemini translation fallback to MyMemory:', err);
         }
@@ -1679,22 +1680,32 @@
 
     let cachedAvailableGeminiModels = null;
 
+    const fetchWithTimeout = async (url, options = {}, timeoutMs = 10000) => {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        return await fetch(url, { ...options, signal: controller.signal });
+      } finally {
+        clearTimeout(timer);
+      }
+    };
+
     const getAvailableGeminiModels = async (key) => {
       if (cachedAvailableGeminiModels) return cachedAvailableGeminiModels;
-      const defaults = ['gemini-3.8-flash', 'gemini-3.8-flash-lite', 'gemini-3.0-flash', 'gemini-3.8-pro'];
+      const defaults = ['gemini-3.8-flash', 'gemini-3.8-flash-lite', 'gemini-3.0-flash'];
       try {
-        const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models?key=' + encodeURIComponent(key));
+        const res = await fetchWithTimeout('https://generativelanguage.googleapis.com/v1beta/models?key=' + encodeURIComponent(key), {}, 7000);
         if (res.ok) {
           const data = await res.json();
+          const excluded = ['embedding', 'tts', 'image', 'audio', 'robotics', 'computer-use', 'pro', 'thinking', '2.0', '1.5', '1.0'];
           const list = (data.models || [])
             .filter(m => Array.isArray(m.supportedGenerationMethods) && m.supportedGenerationMethods.includes('generateContent'))
             .map(m => m.name.replace(/^models\//, ''))
-            .filter(name => name.startsWith('gemini-') && !name.includes('embedding') && !name.includes('tts') && !name.includes('image'));
+            .filter(name => name.startsWith('gemini-') && name.includes('flash') && !excluded.some(bad => name.includes(bad)));
 
           if (list.length > 0) {
-            // Priorità: 3.8-flash > altri flash recenti > pro recenti
             list.sort((a, b) => {
-              const score = (n) => (n === 'gemini-3.8-flash' ? 100 : n.includes('3.8') && n.includes('flash') ? 90 : n.includes('flash') ? 70 : 50);
+              const score = (n) => (n === 'gemini-3.8-flash' ? 100 : n.includes('3.8') ? 90 : n.includes('lite') ? 75 : 65);
               return score(b) - score(a);
             });
             cachedAvailableGeminiModels = list;
@@ -1707,41 +1718,53 @@
       return defaults;
     };
 
-    const callGemini = async (promptText) => {
+    const callGemini = async (promptText, onProgress) => {
       const key = getGeminiKey();
       if (!key) return null;
+      const report = (msg) => { if (typeof onProgress === 'function') onProgress(msg); };
+
+      report('🔍 Ricerca modello Gemini più veloce...');
       const models = await getAvailableGeminiModels(key);
+      const candidates = models.slice(0, 3);
       let lastErrMsg = 'Servizio AI temporaneamente occupato. Riprova tra qualche secondo.';
 
-      // Prova fino a 2 passaggi sui modelli disponibili (con breve pausa su picco 503/429)
       for (let attempt = 0; attempt < 2; attempt++) {
         if (attempt > 0) {
-          await new Promise(r => setTimeout(r, 1400));
+          report('⏳ Picco di traffico su Google, nuovo tentativo rapido...');
+          await new Promise(r => setTimeout(r, 800));
         }
-        for (const model of models.slice(0, 4)) {
+        for (const model of candidates) {
           try {
+            report(`⚡ Elaborazione con <strong>${model}</strong>...`);
             const url = 'https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent?key=' + encodeURIComponent(key);
-            const res = await fetch(url, {
+            const res = await fetchWithTimeout(url, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                contents: [{ parts: [{ text: promptText }] }]
+                contents: [{ parts: [{ text: promptText }] }],
+                generationConfig: { temperature: 0.7 }
               })
-            });
+            }, 10000);
+
             if (res.ok) {
               const data = await res.json();
               const txt = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-              if (txt) return txt;
+              if (txt) return { text: txt, model };
             } else {
               const err = await res.json().catch(() => ({}));
               lastErrMsg = err.error?.message || ('Errore API Gemini (' + res.status + ')');
               if (res.status === 429 || res.status === 503 || res.status === 404 || res.status === 400) {
-                console.warn(`Modello ${model} saltato (${res.status}): ${lastErrMsg}`);
+                report(`⚠️ ${model} occupato (${res.status}), provo il successivo...`);
                 continue;
               }
               throw new Error(lastErrMsg);
             }
           } catch (err) {
+            if (err.name === 'AbortError') {
+              lastErrMsg = `Timeout (10s) su ${model}`;
+              report(`⏱️ ${model} troppo lento (>10s), passo al successivo...`);
+              continue;
+            }
             lastErrMsg = err.message;
           }
         }
@@ -1762,6 +1785,7 @@
 
     // AI Polish & Correct inside News Form
     const btnAiPolishIt = document.getElementById('btnAiPolishIt');
+    const aiPolishStatus = document.getElementById('aiPolishStatus');
     if (btnAiPolishIt) {
       btnAiPolishIt.addEventListener('click', async () => {
         const titleIt = document.getElementById('newsTitleIt').value.trim();
@@ -1772,8 +1796,29 @@
         }
 
         const origLabel = btnAiPolishIt.innerHTML;
+        const startedAt = Date.now();
+        let currentStepMsg = '🔍 Avvio AI...';
         btnAiPolishIt.disabled = true;
-        btnAiPolishIt.innerHTML = '⏳ Miglioramento AI...';
+
+        const updateStatusUI = (msg, bg = '#FFF', border = '#E5D9F2', color = 'var(--primary-dark)') => {
+          currentStepMsg = msg;
+          if (!aiPolishStatus) return;
+          const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+          aiPolishStatus.style.display = 'block';
+          aiPolishStatus.style.background = bg;
+          aiPolishStatus.style.borderColor = border;
+          aiPolishStatus.style.color = color;
+          aiPolishStatus.innerHTML = `${msg} <span style="opacity:0.7;font-weight:700;">(${elapsed}s)</span>`;
+        };
+
+        const tickTimer = setInterval(() => {
+          const secs = Math.floor((Date.now() - startedAt) / 1000);
+          btnAiPolishIt.innerHTML = `⏳ AI (${secs}s)...`;
+          updateStatusUI(currentStepMsg);
+        }, 500);
+
+        btnAiPolishIt.innerHTML = '⏳ AI (0s)...';
+        updateStatusUI('🔍 Connessione a Gemini AI...');
 
         try {
           if (getGeminiKey()) {
@@ -1789,7 +1834,8 @@ Bozza Testo: "${excerptIt}"
 Rispondi SOLO in formato JSON valido con queste esatte chiavi (nessun testo fuori dal JSON):
 {"title_it": "...", "excerpt_it": "...", "title_en": "...", "excerpt_en": "..."}`;
 
-            const rawReply = await callGemini(prompt);
+            const aiRes = await callGemini(prompt, (stepMsg) => updateStatusUI(stepMsg));
+            const rawReply = aiRes?.text || '';
             const jsonMatch = rawReply.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
               const parsed = JSON.parse(jsonMatch[0]);
@@ -1797,18 +1843,24 @@ Rispondi SOLO in formato JSON valido con queste esatte chiavi (nessun testo fuor
               if (parsed.excerpt_it) document.getElementById('newsExcerptIt').value = parsed.excerpt_it;
               if (parsed.title_en) document.getElementById('newsTitleEn').value = parsed.title_en;
               if (parsed.excerpt_en) document.getElementById('newsExcerptEn').value = parsed.excerpt_en;
+              updateStatusUI(`✅ Completato con <strong>${aiRes.model}</strong>`, '#EBF8F2', '#B7E4CE', '#1E6641');
               showToast("Testo corretto, migliorato e tradotto con Gemini AI!", "success", "✨");
+            } else {
+              throw new Error('Risposta AI non in formato JSON valido.');
             }
           } else {
             // Smart local cleanup fallback
             if (titleIt) document.getElementById('newsTitleIt').value = localTextCleanup(titleIt);
             if (excerptIt) document.getElementById('newsExcerptIt').value = localTextCleanup(excerptIt);
-            showToast("Formattazione e punteggiatura sistemate! (Per riscrittura AI completa aggiungi una chiave Gemini gratuita in Impostazioni)", "info", "ℹ️");
+            updateStatusUI('ℹ️ Pulizia locale completata (nessuna API key Gemini configurata).', '#FFF8E1', '#FFE082', '#795548');
+            showToast("Formattazione e punteggiatura sistemate!", "info", "ℹ️");
           }
         } catch (err) {
           console.error(err);
-          alert("Errore AI: " + err.message);
+          updateStatusUI(`❌ ${err.message}`, '#FFEBEE', '#FFCDD2', '#C62828');
+          showToast("AI momentaneamente non disponibile: guarda il dettaglio sotto il titolo.", "warning", "⚠️");
         } finally {
+          clearInterval(tickTimer);
           btnAiPolishIt.disabled = false;
           btnAiPolishIt.innerHTML = origLabel;
         }
@@ -1845,9 +1897,9 @@ Includi:
 3. Chiusura con indirizzo (📍 Via della Bufalotta 850, Roma) e telefono (📞 333 404 4552).
 4. Hashtag pertinenti in fondo (#scuoladeisogni #asilonidoroma #bufalotta #montesacro #talentiroma #bilingueroma ecc.).`;
 
-          const aiPost = await callGemini(prompt);
-          if (aiPost) {
-            igGeneratedCaption.innerText = aiPost.trim();
+          const aiRes = await callGemini(prompt);
+          if (aiRes && aiRes.text) {
+            igGeneratedCaption.innerText = aiRes.text.trim();
             showToast("Post Instagram creato su misura con Gemini AI!", "success", "✨");
             return;
           }
