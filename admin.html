@@ -1077,14 +1077,33 @@
       const token = getStoredToken();
 
       if (token) {
-        tokenBadge.textContent = "GitHub API: Connesso ✅";
-        tokenBadge.style.color = "#2E7D32";
+        if (tokenBadge) {
+          tokenBadge.innerHTML = `<span style="color: #2E7D32; font-size: 0.85rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">GitHub API: Connesso ✅</span>`;
+        }
+        if (!text) text = 'Pronto alla pubblicazione online';
+        if (dot) dot.className = `sync-dot ${status || 'online'}`;
       } else {
-        tokenBadge.textContent = "GitHub API: Non configurato (Salvataggio locale)";
-        tokenBadge.style.color = "#E65100";
+        if (tokenBadge) {
+          tokenBadge.innerHTML = `<button type="button" id="btnGoToToken" class="copy-pill-btn" style="color: #E65100; border-color: #FFB74D; background: #FFF3E0; cursor: pointer; font-weight: 700;" title="Clicca qui per inserire il token GitHub">⚠️ GitHub API: Non configurato (Clicca per inserire il Token)</button>`;
+          const btnGo = document.getElementById('btnGoToToken');
+          if (btnGo) {
+            btnGo.addEventListener('click', () => {
+              const tabBtn = document.querySelector('[data-tab="tab-github-sync"]');
+              if (tabBtn) tabBtn.click();
+              const inp = document.getElementById('ghTokenInput');
+              if (inp) {
+                inp.focus();
+                inp.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+            });
+          }
+        }
+        if (!text || text === 'Pronto alla pubblicazione') {
+          text = 'Modalità locale (Token GitHub non memorizzato su questo browser)';
+        }
+        if (dot) dot.className = 'sync-dot warning';
       }
 
-      if (dot) dot.className = `sync-dot ${status}`;
       if (textSpan) textSpan.textContent = text;
     };
 
@@ -1093,7 +1112,7 @@
     if (tokenInput && getStoredToken()) {
       tokenInput.value = getStoredToken();
     }
-    updateStatusUI('online', 'Pronto alla pubblicazione');
+    updateStatusUI();
 
     document.getElementById('btnSaveGhToken').addEventListener('click', () => {
       const val = tokenInput.value.trim();
@@ -1142,7 +1161,15 @@
       const token = getStoredToken();
       if (!token) {
         localStorage.setItem('scuola_sogni_news_draft', JSON.stringify(jsonData, null, 2));
-        showToast("Salvato localmente. Configura il token GitHub per pubblicare online in automatico.", "info", "💾");
+        showToast("Salvato localmente. Inserisci il token GitHub per pubblicare online.", "warning", "⚠️");
+        alert("⚠️ Attenzione: Il token GitHub non risulta salvato in questo browser (potresti aver aperto una scheda anonima o cancellato i dati del sito).\n\nTi porto alla scheda 'Configura GitHub Token': incolla il tuo Personal Access Token (ghp_...) e clicca 'Salva & Connetti GitHub' per pubblicare online con 1 click!");
+        const tabBtn = document.querySelector('[data-tab="tab-github-sync"]');
+        if (tabBtn) tabBtn.click();
+        const inp = document.getElementById('ghTokenInput');
+        if (inp) {
+          inp.focus();
+          inp.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return false;
       }
 
@@ -2336,7 +2363,15 @@ Un grazie speciale alle nostre educatrici per la passione e la cura con cui acco
         const token = getStoredToken();
         if (!token) {
           localStorage.setItem('scuola_sogni_theme_cache', JSON.stringify(currentThemeConfig));
-          showToast("Tema salvato localmente. Configura il token GitHub per pubblicarlo online in automatico.", "info", "💾");
+          showToast("Tema salvato solo in locale. Inserisci il token GitHub per pubblicare online.", "warning", "⚠️");
+          alert("⚠️ Attenzione: Il token GitHub non risulta salvato in questo browser (potresti aver aperto una scheda anonima o cancellato i dati del sito).\n\nTi porto alla scheda 'Configura GitHub Token': incolla il tuo Personal Access Token (ghp_...) e clicca 'Salva & Connetti GitHub' per pubblicare online con 1 click!");
+          const tabBtn = document.querySelector('[data-tab="tab-github-sync"]');
+          if (tabBtn) tabBtn.click();
+          const inp = document.getElementById('ghTokenInput');
+          if (inp) {
+            inp.focus();
+            inp.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
           return;
         }
 

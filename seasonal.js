@@ -137,7 +137,8 @@
       const el = document.createElement('div');
       const item = def.items[i % def.items.length];
       const duration = randomRange(def.duration[0], def.duration[1]);
-      const delay = randomRange(0, 10);
+      // Delay negativo: avvia ogni particella già distribuita dolcemente lungo lo schermo fin dal primo istante (zero accumuli all'inizio!)
+      const delay = -randomRange(0, duration);
       const startX = randomRange(2, 96);
       const sway = (Math.random() > 0.5 ? 1 : -1) * randomRange(def.sway[0], def.sway[1]);
       const rotEnd = (Math.random() > 0.5 ? 1 : -1) * randomRange(180, 540);
@@ -149,7 +150,7 @@
       el.style.setProperty('--fall-duration', `${duration}s`);
       el.style.setProperty('--particle-opacity', opacity);
       el.style.setProperty('--rot-end', `${rotEnd}deg`);
-      el.style.animationDelay = `${delay}s`;
+      el.style.animationDelay = `${delay.toFixed(2)}s`;
       el.style.left = `${startX}vw`;
       el.style.fontSize = `${sizePx}px`;
 
