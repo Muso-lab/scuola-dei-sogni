@@ -7,6 +7,7 @@
   <meta name="robots" content="noindex, nofollow">
   <link rel="icon" type="image/jpeg" href="assets/images/logo-scuola-dei-sogni.jpg">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="seasonal.css?v=1.0">
   <style>
     :root {
       --admin-bg: #F7F5FA;
@@ -334,6 +335,61 @@
       text-align: center;
       box-shadow: 0 20px 50px rgba(0,0,0,0.3);
     }
+    .theme-card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .theme-picker-card {
+      background: #FFFFFF;
+      border: 2px solid var(--admin-border);
+      border-radius: var(--radius-md);
+      padding: 18px 16px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+    }
+    .theme-picker-card:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(143, 113, 175, 0.12);
+    }
+    .theme-picker-card.active {
+      border-color: var(--primary-dark);
+      background: #FAF6FD;
+      box-shadow: 0 6px 20px rgba(143, 113, 175, 0.18);
+    }
+    .theme-picker-card.active::after {
+      content: "✓ Attivo";
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+    }
+    .theme-card-icon {
+      font-size: 2.2rem;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .theme-card-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--dark);
+    }
+    .theme-card-desc {
+      font-size: 0.78rem;
+      color: var(--admin-muted);
+      line-height: 1.35;
+    }
     @media (max-width: 768px) {
       .grid-2col { grid-template-columns: 1fr; }
       .admin-tabs { flex-wrap: wrap; }
@@ -410,6 +466,9 @@
       </button>
       <button class="tab-btn" data-tab="tab-ai-studio">
         <span>✨ Assistente AI Social & Copy</span>
+      </button>
+      <button class="tab-btn" data-tab="tab-theme">
+        <span>🎨 Effetti & Stagioni</span>
       </button>
       <button class="tab-btn" data-tab="tab-ig-feed">
         <span>📸 Instagram Sync</span>
@@ -808,8 +867,146 @@
       </div>
     </section>
 
+    <!-- TAB 5: EFFETTI & STAGIONI -->
+    <section id="tab-theme" class="admin-section">
+      <div class="admin-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 8px;">
+          <div>
+            <h2 class="admin-title" style="margin-bottom: 4px;">🎨 Effetti Grafici Stagionali & Feste</h2>
+            <p class="admin-subtitle" style="margin-bottom: 0;">Scegli l'atmosfera visiva applicata a tutto il sito web. Discreta, raffinata e accessibile (non copre i testi, non ostacola i click dei genitori).</p>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <button type="button" id="btnPreviewTheme" class="btn btn-secondary" style="padding: 7px 14px; font-size: 0.85rem;">
+              <span>👀 Prova sullo Schermo</span>
+            </button>
+            <button type="button" id="btnClearPreview" class="copy-pill-btn" style="padding: 7px 12px; font-size: 0.82rem; display: none;">
+              <span>✕ Ferma</span>
+            </button>
+            <button type="button" id="btnSaveThemeOnline" class="btn btn-primary" style="padding: 7px 18px; font-size: 0.85rem;">
+              <span>💾 Salva & Pubblica Online</span>
+            </button>
+          </div>
+        </div>
+
+        <div style="background: #F4EFFB; border-radius: var(--radius-md); padding: 12px 18px; border: 1px solid #E3D7F2; margin-bottom: 20px; font-size: 0.88rem; color: var(--primary-dark); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+          <div>
+            <strong>Tema attualmente selezionato:</strong> <span id="lblActiveThemeName" style="text-decoration: underline; font-weight: 700;">Autunno Dolce</span>
+          </div>
+          <span style="font-size: 0.78rem; color: var(--admin-muted);">Aggiornamento istantaneo su index.html ed en.html</span>
+        </div>
+
+        <!-- Selettore Temi a Schede -->
+        <div class="theme-card-grid" id="themePickerGrid">
+          <div class="theme-picker-card" data-theme="auto">
+            <div class="theme-card-icon">🗓️</div>
+            <div class="theme-card-title">Automatico (Calendario)</div>
+            <div class="theme-card-desc">Si adatta da solo al mese dell'anno (Autunno, Natale, Carnevale, Primavera, Bolle estive, Open Day).</div>
+          </div>
+
+          <div class="theme-picker-card" data-theme="autumn">
+            <div class="theme-card-icon">🍂</div>
+            <div class="theme-card-title">Autunno Dolce</div>
+            <div class="theme-card-desc">Foglie d'acero e faggio dorate dai toni caldi (miele e terracotta) che volteggiano dolcemente.</div>
+          </div>
+
+          <div class="theme-picker-card" data-theme="halloween">
+            <div class="theme-card-icon">🎃</div>
+            <div class="theme-card-title">Halloween & Autunno Magico</div>
+            <div class="theme-card-desc">Piccole zucchette sorridenti, foglioline ambrate e stelline arancio/viola (allegro e per bambini).</div>
+          </div>
+
+          <div class="theme-picker-card" data-theme="christmas">
+            <div class="theme-card-icon">🎄</div>
+            <div class="theme-card-title">Natale & Feste di Fine Anno</div>
+            <div class="theme-card-desc">Fiocchi dorati e bianchi, campanellini e stelline magiche per l'atmosfera natalizia.</div>
+          </div>
+
+          <div class="theme-picker-card" data-theme="winter">
+            <div class="theme-card-icon">❄️</div>
+            <div class="theme-card-title">Inverno & Neve Soffusa</div>
+            <div class="theme-card-desc">Fiocchi di neve morbidi (effetto bokeh rilassante) e cristalli leggeri che scendono lenti.</div>
+          </div>
+
+          <div class="theme-picker-card" data-theme="carnival">
+            <div class="theme-card-icon">🎭</div>
+            <div class="theme-card-title">Carnevale in Festa</div>
+            <div class="theme-card-desc">Coriandoli color pastello, palloncini e stelle filanti ondeggianti piene di allegria.</div>
+          </div>
+
+          <div class="theme-picker-card" data-theme="spring">
+            <div class="theme-card-icon">🌸</div>
+            <div class="theme-card-title">Primavera in Fiore</div>
+            <div class="theme-card-desc">Petali di ciliegio rosa cipria e farfalline pastello che danzano con grazia nella brezza.</div>
+          </div>
+
+          <div class="theme-picker-card" data-theme="summer">
+            <div class="theme-card-icon">🫧</div>
+            <div class="theme-card-title">Estate & Bolle di Sapone</div>
+            <div class="theme-card-desc">Bolle trasparenti iridescenti che salgono verso l'alto (evoca il gioco nel parco della villa!).</div>
+          </div>
+
+          <div class="theme-picker-card" data-theme="openday">
+            <div class="theme-card-icon">🏫</div>
+            <div class="theme-card-title">Open Day & Nuovi Iscritti</div>
+            <div class="theme-card-desc">Palloncini colorati pastello e piccole matite/palette che salgono festosi verso l'alto.</div>
+          </div>
+
+          <div class="theme-picker-card" data-theme="magic">
+            <div class="theme-card-icon">✨</div>
+            <div class="theme-card-title">Notte dei Sogni (Magia)</div>
+            <div class="theme-card-desc">Stelline dorate scintillanti e lucciole luminose che richiamano l'identità della scuola.</div>
+          </div>
+
+          <div class="theme-picker-card" data-theme="none">
+            <div class="theme-card-icon">🚫</div>
+            <div class="theme-card-title">Nessun Effetto</div>
+            <div class="theme-card-desc">Disattiva tutte le particelle per un look completamente pulito e istituzionale.</div>
+          </div>
+        </div>
+
+        <!-- Banner Superiore Avvisi & Iscrizioni (Opzionale) -->
+        <div style="background: #FAFAFC; border: 1px solid var(--admin-border); border-radius: var(--radius-md); padding: 20px; margin-top: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <input type="checkbox" id="chkBannerEnabled" style="width: 18px; height: 18px; accent-color: var(--primary); cursor: pointer;">
+              <label for="chkBannerEnabled" style="font-weight: 700; font-size: 0.95rem; cursor: pointer; color: var(--dark);">
+                📢 Mostra Nastro Superiore Avvisi / Open Day sul Sito
+              </label>
+            </div>
+            <span style="font-size: 0.78rem; color: var(--admin-muted);">Compare in cima alla pagina e si può chiudere con '✕'</span>
+          </div>
+
+          <div id="bannerFieldsWrap" style="display: none; padding-top: 12px; border-top: 1px dashed var(--admin-border);">
+            <div class="grid-2col" style="gap: 16px;">
+              <div class="form-group">
+                <label class="form-label" for="txtBannerIt">Testo Avviso in Italiano *</label>
+                <input type="text" id="txtBannerIt" class="form-control" value="🎉 Iscrizioni Aperte Anno Scolastico: prenota la tua visita privata alla villa e al parco!">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="txtBannerEn">Testo Avviso in Inglese (en.html) *</label>
+                <input type="text" id="txtBannerEn" class="form-control" value="🎉 Admissions Open: book your private visit to our villa and playground!">
+              </div>
+            </div>
+
+            <div class="grid-2col" style="gap: 16px;">
+              <div class="form-group">
+                <label class="form-label" for="txtBannerBtnIt">Testo Pulsante</label>
+                <input type="text" id="txtBannerBtnIt" class="form-control" value="Prenota Visita">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="txtBannerLink">Link Destinazione (es. #contatti oppure link WhatsApp)</label>
+                <input type="text" id="txtBannerLink" class="form-control" value="#contatti">
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
   </main>
 
+  <script src="seasonal.js?v=1.0"></script>
   <script>
     // --- 1. Toast Notification Helper ---
     const showToast = (msg, type = 'info', icon = 'ℹ️') => {
@@ -2003,8 +2200,204 @@ Un grazie speciale alle nostre educatrici per la passione e la cura con cui acco
       showToast("Post Instagram importato! Verifica e clicca Salva.", "info", "📥");
     });
 
+    // --- 9. Seasonal Themes & Atmosphere Engine ---
+    const GITHUB_THEME_PATH = "data/theme.json";
+    let currentThemeConfig = {
+      activeTheme: 'autumn',
+      intensity: 'normal',
+      bannerEnabled: false,
+      bannerTextIt: "🎉 Iscrizioni Aperte Anno Scolastico: prenota la tua visita privata alla villa e al parco!",
+      bannerTextEn: "🎉 Admissions Open: book your private visit to our villa and playground!",
+      bannerLink: "#contatti",
+      bannerButtonIt: "Prenota Visita",
+      bannerButtonEn: "Book a Tour",
+      updatedAt: new Date().toISOString()
+    };
+
+    const themeNamesMap = {
+      auto: "Automatico da Calendario",
+      autumn: "Autunno Dolce",
+      halloween: "Halloween & Autunno Magico",
+      christmas: "Natale & Feste di Fine Anno",
+      winter: "Inverno & Neve Soffusa",
+      carnival: "Carnevale in Festa",
+      spring: "Primavera in Fiore",
+      summer: "Estate & Bolle di Sapone",
+      openday: "Open Day & Nuovi Iscritti",
+      magic: "Notte dei Sogni (Magia)",
+      none: "Nessun Effetto (Disattivato)"
+    };
+
+    const updateThemeUI = () => {
+      const active = currentThemeConfig.activeTheme || 'autumn';
+      const labelEl = document.getElementById('lblActiveThemeName');
+      if (labelEl) {
+        labelEl.textContent = themeNamesMap[active] || active;
+      }
+      document.querySelectorAll('#themePickerGrid .theme-picker-card').forEach(card => {
+        card.classList.toggle('active', card.dataset.theme === active);
+      });
+
+      const chk = document.getElementById('chkBannerEnabled');
+      const bannerWrap = document.getElementById('bannerFieldsWrap');
+      if (chk) chk.checked = !!currentThemeConfig.bannerEnabled;
+      if (bannerWrap) bannerWrap.style.display = currentThemeConfig.bannerEnabled ? 'block' : 'none';
+
+      if (currentThemeConfig.bannerTextIt) document.getElementById('txtBannerIt').value = currentThemeConfig.bannerTextIt;
+      if (currentThemeConfig.bannerTextEn) document.getElementById('txtBannerEn').value = currentThemeConfig.bannerTextEn;
+      if (currentThemeConfig.bannerButtonIt) document.getElementById('txtBannerBtnIt').value = currentThemeConfig.bannerButtonIt;
+      if (currentThemeConfig.bannerLink) document.getElementById('txtBannerLink').value = currentThemeConfig.bannerLink;
+    };
+
+    const loadThemeConfig = async () => {
+      try {
+        const cached = localStorage.getItem('scuola_sogni_theme_cache');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (parsed && parsed.activeTheme) currentThemeConfig = Object.assign(currentThemeConfig, parsed);
+          updateThemeUI();
+        }
+      } catch (e) {}
+
+      try {
+        const res = await fetch(`data/theme.json?v=${Date.now()}`);
+        if (res.ok) {
+          const data = await res.json();
+          currentThemeConfig = Object.assign(currentThemeConfig, data);
+          localStorage.setItem('scuola_sogni_theme_cache', JSON.stringify(currentThemeConfig));
+          updateThemeUI();
+        }
+      } catch (err) {
+        console.warn('Theme load error:', err);
+      }
+    };
+
+    // Click card to select theme
+    document.querySelectorAll('#themePickerGrid .theme-picker-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const theme = card.dataset.theme;
+        currentThemeConfig.activeTheme = theme;
+        updateThemeUI();
+        if (window.SeasonalEngine) {
+          window.SeasonalEngine.applyTheme(theme);
+          document.getElementById('btnClearPreview').style.display = 'inline-flex';
+        }
+        showToast(`Tema "${themeNamesMap[theme]}" selezionato! Clicca su Salva per pubblicarlo.`, "info", "🎨");
+      });
+    });
+
+    // Preview button
+    const btnPreviewTheme = document.getElementById('btnPreviewTheme');
+    const btnClearPreview = document.getElementById('btnClearPreview');
+    if (btnPreviewTheme) {
+      btnPreviewTheme.addEventListener('click', () => {
+        if (window.SeasonalEngine) {
+          window.SeasonalEngine.applyTheme(currentThemeConfig.activeTheme);
+          if (currentThemeConfig.bannerEnabled) {
+            window.SeasonalEngine.previewBanner(currentThemeConfig);
+          }
+          btnClearPreview.style.display = 'inline-flex';
+          showToast(`Anteprima live di "${themeNamesMap[currentThemeConfig.activeTheme]}" attivata!`, "success", "👀");
+        }
+      });
+    }
+
+    if (btnClearPreview) {
+      btnClearPreview.addEventListener('click', () => {
+        if (window.SeasonalEngine) {
+          window.SeasonalEngine.clear();
+          const existingBanner = document.querySelector('.seasonal-banner-bar');
+          if (existingBanner) existingBanner.remove();
+          btnClearPreview.style.display = 'none';
+          showToast("Anteprima fermata.", "info", "🧹");
+        }
+      });
+    }
+
+    // Toggle banner checkbox
+    const chkBanner = document.getElementById('chkBannerEnabled');
+    if (chkBanner) {
+      chkBanner.addEventListener('change', (e) => {
+        currentThemeConfig.bannerEnabled = e.target.checked;
+        document.getElementById('bannerFieldsWrap').style.display = e.target.checked ? 'block' : 'none';
+      });
+    }
+
+    // Save Theme to GitHub
+    const btnSaveThemeOnline = document.getElementById('btnSaveThemeOnline');
+    if (btnSaveThemeOnline) {
+      btnSaveThemeOnline.addEventListener('click', async () => {
+        currentThemeConfig.bannerTextIt = document.getElementById('txtBannerIt').value.trim();
+        currentThemeConfig.bannerTextEn = document.getElementById('txtBannerEn').value.trim();
+        currentThemeConfig.bannerButtonIt = document.getElementById('txtBannerBtnIt').value.trim();
+        currentThemeConfig.bannerLink = document.getElementById('txtBannerLink').value.trim();
+        currentThemeConfig.updatedAt = new Date().toISOString();
+
+        const token = getStoredToken();
+        if (!token) {
+          localStorage.setItem('scuola_sogni_theme_cache', JSON.stringify(currentThemeConfig));
+          showToast("Tema salvato localmente. Configura il token GitHub per pubblicarlo online in automatico.", "info", "💾");
+          return;
+        }
+
+        updateStatusUI('busy', 'Pubblicazione atmosfera su GitHub...');
+        showToast("Invio configurazione atmosfera a GitHub...", "info", "⏳");
+
+        try {
+          const jsonString = JSON.stringify(currentThemeConfig, null, 2);
+          const utf8Bytes = new TextEncoder().encode(jsonString);
+          let binaryStr = '';
+          utf8Bytes.forEach(b => binaryStr += String.fromCharCode(b));
+          const encodedContent = btoa(binaryStr);
+
+          // Fetch latest SHA for data/theme.json
+          let sha = null;
+          try {
+            const shaRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_THEME_PATH}?ref=${GITHUB_BRANCH}&_=${Date.now()}`, {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/vnd.github.v3+json'
+              }
+            });
+            if (shaRes.ok) {
+              const fileData = await shaRes.json();
+              sha = fileData.sha;
+            }
+          } catch (e) {}
+
+          const putRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_THEME_PATH}`, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Accept': 'application/vnd.github.v3+json',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              message: `Aggiorna tema e atmosfera stagionale: ${currentThemeConfig.activeTheme}`,
+              content: encodedContent,
+              sha: sha || undefined,
+              branch: GITHUB_BRANCH
+            })
+          });
+
+          if (putRes.ok) {
+            localStorage.setItem('scuola_sogni_theme_cache', JSON.stringify(currentThemeConfig));
+            updateStatusUI('online', 'Pronto alla pubblicazione');
+            showToast("Atmosfera stagionale pubblicata con successo online!", "success", "✨");
+          } else {
+            const errData = await putRes.json().catch(() => ({}));
+            throw new Error(errData.message || 'Errore durante il salvataggio su GitHub');
+          }
+        } catch (err) {
+          updateStatusUI('warning', 'Errore pubblicazione tema');
+          alert("Errore durante la pubblicazione del tema su GitHub: " + err.message);
+        }
+      });
+    }
+
     // Start
     loadNews();
+    loadThemeConfig();
   </script>
 
 </body>

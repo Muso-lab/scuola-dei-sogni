@@ -1,0 +1,207 @@
+/* ==========================================================================
+   SCUOLA DEI SOGNI — Motore Effetti Stagionali & Banner Eventi
+   Elegante, leggero (GPU-accelerato), accessibile (pointer-events: none)
+   ========================================================================== */
+
+.seasonal-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none !important;
+  z-index: 9998;
+  overflow: hidden;
+}
+
+.seasonal-particle {
+  position: absolute;
+  pointer-events: none !important;
+  user-select: none;
+  line-height: 1;
+  will-change: transform, opacity;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.08));
+}
+
+/* --- Animazione 1: Caduta Morbida con Oscillazione (Foglie, Neve, Petali, Coriandoli) --- */
+@keyframes seasonalFall {
+  0% {
+    transform: translate3d(0, -50px, 0) rotate(0deg) scale(0.9);
+    opacity: 0;
+  }
+  10% {
+    opacity: var(--particle-opacity, 0.7);
+  }
+  85% {
+    opacity: var(--particle-opacity, 0.7);
+  }
+  100% {
+    transform: translate3d(var(--sway-x, 80px), 105vh, 0) rotate(var(--rot-end, 360deg)) scale(1.05);
+    opacity: 0;
+  }
+}
+
+/* --- Animazione 2: Salita Fluttuante verso l'alto (Bolle di sapone, Palloncini Open Day) --- */
+@keyframes seasonalRise {
+  0% {
+    transform: translate3d(0, 105vh, 0) scale(0.85);
+    opacity: 0;
+  }
+  12% {
+    opacity: var(--particle-opacity, 0.65);
+  }
+  88% {
+    opacity: var(--particle-opacity, 0.65);
+  }
+  100% {
+    transform: translate3d(var(--sway-x, -60px), -60px, 0) scale(1.1);
+    opacity: 0;
+  }
+}
+
+/* --- Animazione 3: Lucciole & Stelline Brillanti (Notte dei Sogni) --- */
+@keyframes seasonalSparkle {
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.6);
+    opacity: 0.1;
+  }
+  50% {
+    transform: translate3d(var(--sway-x, 30px), var(--sway-y, -40px), 0) scale(1.25);
+    opacity: var(--particle-opacity, 0.85);
+  }
+  100% {
+    transform: translate3d(calc(var(--sway-x, 30px) * 2), calc(var(--sway-y, -40px) * 2), 0) scale(0.7);
+    opacity: 0.15;
+  }
+}
+
+/* Stili specifici per classe particella */
+.seasonal-particle.mode-fall {
+  animation: seasonalFall var(--fall-duration, 10s) cubic-bezier(0.25, 0.1, 0.25, 1) infinite;
+}
+
+.seasonal-particle.mode-rise {
+  animation: seasonalRise var(--fall-duration, 12s) cubic-bezier(0.25, 0.1, 0.25, 1) infinite;
+}
+
+.seasonal-particle.mode-sparkle {
+  animation: seasonalSparkle var(--fall-duration, 6s) ease-in-out infinite alternate;
+}
+
+/* Bolla di sapone realistica CSS per Estate */
+.bubble-particle {
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.2) 20%, rgba(143, 211, 244, 0.25) 60%, rgba(214, 169, 255, 0.45) 90%, rgba(255, 255, 255, 0.6) 100%);
+  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.6), 0 2px 8px rgba(100, 150, 220, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.45);
+}
+
+/* Fiocco di neve morbido tipo bokeh per Inverno */
+.snow-soft {
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.5) 50%, rgba(255,255,255,0) 80%);
+  filter: blur(1px);
+}
+
+/* --- Banner Superiore Eventi & Open Day (Opzionale) --- */
+.seasonal-banner-bar {
+  background: linear-gradient(135deg, #8F71AF 0%, #6E4F8E 100%);
+  color: #FFFFFF;
+  font-size: 0.88rem;
+  padding: 9px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  position: relative;
+  z-index: 10005;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+.seasonal-banner-bar.theme-autumn {
+  background: linear-gradient(135deg, #B5651D 0%, #8C430B 100%);
+}
+.seasonal-banner-bar.theme-halloween {
+  background: linear-gradient(135deg, #D35400 0%, #4A235A 100%);
+}
+.seasonal-banner-bar.theme-christmas {
+  background: linear-gradient(135deg, #A8201A 0%, #143601 100%);
+}
+.seasonal-banner-bar.theme-winter {
+  background: linear-gradient(135deg, #2C5364 0%, #203A43 100%);
+}
+.seasonal-banner-bar.theme-carnival {
+  background: linear-gradient(135deg, #7E57C2 0%, #EC407A 100%);
+}
+.seasonal-banner-bar.theme-spring {
+  background: linear-gradient(135deg, #43A047 0%, #E91E63 100%);
+}
+.seasonal-banner-bar.theme-summer {
+  background: linear-gradient(135deg, #0288D1 0%, #0097A7 100%);
+}
+.seasonal-banner-bar.theme-openday {
+  background: linear-gradient(135deg, #8F71AF 0%, #53B487 100%);
+}
+
+.seasonal-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.seasonal-banner-text {
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.seasonal-banner-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #FFFFFF;
+  color: #333333;
+  padding: 4px 14px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: transform 0.2s, background 0.2s;
+  white-space: nowrap;
+}
+
+.seasonal-banner-btn:hover {
+  transform: scale(1.05);
+  background: #FFFDF0;
+}
+
+.seasonal-banner-close {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0 6px;
+  line-height: 1;
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: color 0.2s;
+}
+
+.seasonal-banner-close:hover {
+  color: #FFFFFF;
+}
+
+/* Riduzione del movimento per accessibilità */
+@media (prefers-reduced-motion: reduce) {
+  .seasonal-container {
+    display: none !important;
+  }
+}
