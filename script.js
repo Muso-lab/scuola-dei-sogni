@@ -301,8 +301,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (e.key === 'ArrowRight' && modalPhotos.length > 1) updateModalPhoto(modalPhotoIdx + 1);
     });
 
-    const renderNews = (newsItems) => {
-      if (!Array.isArray(newsItems) || newsItems.length === 0) {
+    const renderNews = (rawItems) => {
+      const newsItems = Array.isArray(rawItems)
+        ? rawItems.filter(n => n && ((n.title_it && n.title_it.trim()) || (n.title_en && n.title_en.trim())))
+        : [];
+
+      if (newsItems.length === 0) {
         newsContainer.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--muted); padding: 32px; font-style: italic;">
           ${isEnglish ? 'No current news at the moment.' : 'Nessuna novità pubblicata al momento.'}
         </p>`;
@@ -372,7 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
           carouselNav.className = 'news-carousel-nav';
           carouselNav.innerHTML = `
             <button class="news-nav-btn prev" aria-label="${isEnglish ? 'Previous news' : 'News precedente'}">‹</button>
-            <span style="font-size: 0.85rem; font-weight: 700; color: var(--muted);">${newsItems.length} ${isEnglish ? 'total updates' : 'novità totali'}</span>
+            <span class="news-count-label" style="font-size: 0.85rem; font-weight: 700; color: var(--muted);">${newsItems.length} ${isEnglish ? 'total updates' : 'novità totali'}</span>
             <button class="news-nav-btn next" aria-label="${isEnglish ? 'Next news' : 'News successiva'}">›</button>
           `;
           newsContainer.parentNode.insertBefore(carouselNav, newsContainer.nextSibling);
@@ -390,6 +394,12 @@ document.addEventListener('DOMContentLoaded', () => {
           nextBtn.addEventListener('click', () => {
             newsContainer.scrollBy({ left: getScrollStep(), behavior: 'smooth' });
           });
+        } else {
+          // Aggiorna sempre dinamicamente il testo del contatore
+          const countSpan = carouselNav.querySelector('.news-count-label') || carouselNav.querySelector('span');
+          if (countSpan) {
+            countSpan.textContent = `${newsItems.length} ${isEnglish ? 'total updates' : 'novità totali'}`;
+          }
         }
       } else {
         newsContainer.classList.remove('is-carousel');
