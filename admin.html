@@ -1277,11 +1277,17 @@
           const localDraft = localStorage.getItem('scuola_sogni_news_draft');
           if (localDraft) currentNews = JSON.parse(localDraft);
         }
+        if (Array.isArray(currentNews)) {
+          currentNews = currentNews.filter(n => n && n.title_it && n.title_it.trim() !== '');
+        }
       } catch (e) {
         console.warn('Using fallback data', e);
         const localDraft = localStorage.getItem('scuola_sogni_news_draft');
         if (localDraft) {
-          currentNews = JSON.parse(localDraft);
+          try {
+            const parsed = JSON.parse(localDraft);
+            currentNews = Array.isArray(parsed) ? parsed.filter(n => n && n.title_it && n.title_it.trim() !== '') : [];
+          } catch (err) {}
         }
       }
       renderNewsList();
@@ -1417,6 +1423,13 @@
     // Form Submit (Save & Publish)
     document.getElementById('newsForm').addEventListener('submit', async (e) => {
       e.preventDefault();
+      const titleIt = document.getElementById('newsTitleIt').value.trim();
+      const excerptIt = document.getElementById('newsExcerptIt').value.trim();
+      if (!titleIt || !excerptIt) {
+        alert("Inserisci almeno il titolo e la descrizione in italiano prima di pubblicare.");
+        return;
+      }
+
       const editId = document.getElementById('editNewsId').value;
       const catParts = document.getElementById('newsCategory').value.split('|');
       const catIt = catParts[0];
@@ -1434,7 +1447,12 @@
             finalGallery.push(item.path);
           } else if (item.type === 'new') {
             const uploadedPath = await uploadImageToGitHub(item.name, item.base64, item.mediaType === 'video');
-            finalGallery.push(uploadedPath || item.dataUrl);
+            if (uploadedPath) {
+              finalGallery.push(uploadedPath);
+            } else {
+              console.warn("Upload immagine su GitHub non riuscito per:", item.name);
+              finalGallery.push('assets/images/parco-giochi-scivolo.png');
+            }
           }
         }
         if (newFiles.length > 0) {

@@ -403,7 +403,8 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         const parsed = JSON.parse(cachedData);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          renderNews(parsed);
+          const validCached = parsed.filter(n => n && n.title_it && n.title_it.trim());
+          renderNews(validCached);
         }
       } catch (err) {}
     }
@@ -416,8 +417,13 @@ document.addEventListener('DOMContentLoaded', () => {
       })
       .then(newsItems => {
         if (Array.isArray(newsItems)) {
-          localStorage.setItem('scuola_sogni_news_cache', JSON.stringify(newsItems));
-          renderNews(newsItems);
+          const validNews = newsItems.filter(n => n && n.title_it && n.title_it.trim());
+          try {
+            localStorage.setItem('scuola_sogni_news_cache', JSON.stringify(validNews));
+          } catch (e) {
+            console.warn('LocalStorage cache write error:', e);
+          }
+          renderNews(validNews);
         }
       })
       .catch(err => {
