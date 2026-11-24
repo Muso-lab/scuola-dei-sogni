@@ -1916,12 +1916,12 @@
 
     const getAvailableGeminiModels = async (key) => {
       if (cachedAvailableGeminiModels) return cachedAvailableGeminiModels;
-      const defaults = ['gemini-3.8-flash', 'gemini-3.8-flash-lite', 'gemini-3.0-flash'];
+      const defaults = ['gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-3.8-flash-lite'];
       try {
         const res = await fetchWithTimeout('https://generativelanguage.googleapis.com/v1beta/models?key=' + encodeURIComponent(key), {}, 7000);
         if (res.ok) {
           const data = await res.json();
-          const excluded = ['embedding', 'tts', 'image', 'audio', 'robotics', 'computer-use', 'pro', 'thinking', '2.0', '1.5', '1.0'];
+          const excluded = ['embedding', 'tts', 'image', 'audio', 'robotics', 'computer-use', 'pro', 'thinking', '2.5', '2.0', '1.5', '1.0', '-001', '-002'];
           const list = (data.models || [])
             .filter(m => Array.isArray(m.supportedGenerationMethods) && m.supportedGenerationMethods.includes('generateContent'))
             .map(m => m.name.replace(/^models\//, ''))
@@ -1929,7 +1929,14 @@
 
           if (list.length > 0) {
             list.sort((a, b) => {
-              const score = (n) => (n === 'gemini-3.8-flash' ? 100 : n.includes('3.8') ? 90 : n.includes('lite') ? 75 : 65);
+              const score = (n) => {
+                if (n === 'gemini-3.5-flash-lite') return 120;
+                if (n === 'gemini-3.8-flash') return 110;
+                if (n.includes('3.5')) return 100;
+                if (n.includes('3.8')) return 90;
+                if (n.includes('flash') && n.includes('lite')) return 80;
+                return 70;
+              };
               return score(b) - score(a);
             });
             cachedAvailableGeminiModels = list;
@@ -1949,7 +1956,7 @@
 
       report('🔍 Ricerca modello Gemini più veloce...');
       const models = await getAvailableGeminiModels(key);
-      const candidates = models.slice(0, 3);
+      const candidates = models.slice(0, 4);
       let lastErrMsg = 'Servizio AI temporaneamente occupato. Riprova tra qualche secondo.';
       const genConfig = { temperature: 0.7 };
       if (options.json) {
@@ -1981,11 +1988,8 @@
             } else {
               const err = await res.json().catch(() => ({}));
               lastErrMsg = err.error?.message || ('Errore API Gemini (' + res.status + ')');
-              if (res.status === 429 || res.status === 503 || res.status === 404 || res.status === 400) {
-                report(`⚠️ ${model} occupato (${res.status}), provo il successivo...`);
-                continue;
-              }
-              throw new Error(lastErrMsg);
+              report(`⚠️ ${model} non disponibile (${res.status}), provo il successivo...`);
+              continue;
             }
           } catch (err) {
             if (err.name === 'AbortError') {
@@ -1994,6 +1998,8 @@
               continue;
             }
             lastErrMsg = err.message;
+            report(`⚠️ Errore su ${model}, provo il successivo...`);
+            continue;
           }
         }
       }
