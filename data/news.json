@@ -1,5 +1,25 @@
 [
   {
+    "id": "news-1795534470001",
+    "date": "2026-11-24",
+    "category_it": "Laboratori Speciali",
+    "category_en": "Special Workshops",
+    "title_it": "Il nuovo Progetto di Psicomotricità",
+    "title_en": "New Psychomotricity Project",
+    "excerpt_it": "Alla Scuola dei Sogni di Roma Bufalotta prende il via il nuovo progetto di psicomotricità dedicato ai bambini della scuola dell'infanzia (3-6 anni). Un'esperienza preziosa per favorire la crescita, l'equilibrio e la socializzazione attraverso il movimento e il gioco in uno spazio sicuro e stimolante.",
+    "excerpt_en": "At Scuola dei Sogni in Rome Bufalotta, the new psychomotricity project for kindergarten children (3-6 years) is starting. A valuable experience to support growth, balance, and socialization through movement and play in a safe and stimulating environment.",
+    "image": "assets/images/uploads/1795534459996-whatsapp-image-2026-11-24-at-16.12.23--1-.jpeg",
+    "gallery": [
+      "assets/images/uploads/1795534459996-whatsapp-image-2026-11-24-at-16.12.23--1-.jpeg",
+      "assets/images/uploads/1795534461881-whatsapp-image-2026-11-24-at-16.12.23--2-.jpeg",
+      "assets/images/uploads/1795534463421-whatsapp-image-2026-11-24-at-16.12.23.jpeg",
+      "assets/images/uploads/1795534464785-whatsapp-image-2026-11-24-at-16.12.24--1-.jpeg",
+      "assets/images/uploads/1795534466280-whatsapp-image-2026-11-24-at-16.12.24--2-.jpeg",
+      "assets/images/uploads/1795534468534-whatsapp-image-2026-11-24-at-16.12.24.jpeg"
+    ],
+    "instagram_url": ""
+  },
+  {
     "id": "scuola-musica-foulard-2026",
     "date": "2026-11-12",
     "category_it": "Progetto Educativo",
